@@ -1,0 +1,51 @@
+{
+  "alert_grace_seconds": 10,
+  "checkin_seconds": 30,
+  "contact_name": "Jordan",
+  "contact_phone": "+1 555 0100",
+  "csi_mac": "2c:cf:67:c5:c4:14",
+  "csi_mode": "sim",
+  "gemini_api_key": "",
+  "gemini_model": "gemini-3.8-flash-lite-tts",
+  "gemini_stagger_s": 15,
+  "gemini_voice": "Kore",
+  "live_dead_s": 5.0,
+  "max_distance_m": 4.0,
+  "motion_factor": 1.5,
+  "motion_window_s": 2.0,
+  "presence_dev_cm": 30.0,
+  "presence_enter_s": 1.5,
+  "presence_exit_s": 5.0,
+  "rearm_seconds": 120,
+  "replay_loop": true,
+  "replay_path": "data/session1/walking_20261016_235147.pcap",
+  "replay_speed": 1.0,
+  "sensors": [
+    {
+      "echo": 17,
+      "label": "us1",
+      "trig": 4
+    },
+    {
+      "echo": 27,
+      "label": "us2",
+      "trig": 22
+    }
+  ],
+  "sim_room": [
+    4.0,
+    3.0
+  ],
+  "still_seconds": 45,
+  "tcpdump_cmd": [
+    "tcpdump",
+    "-i",
+    "wlan0",
+    "-w",
+    "-",
+    "-U"
+  ],
+  "ultra_mode": "sim",
+  "voice_muted": false,
+  "voice_repeat_seconds": 10
+}
