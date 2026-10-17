@@ -209,7 +209,6 @@ class App:
             self.show("helpsent")
         elif to in (State.ACTIVE, State.STILL, State.AWAY):
             self.speaker.stop()
-            self.speaker.speak("allclear")
             self.show("dashboard")
 
     # == screen management =====================================================
@@ -382,6 +381,8 @@ class App:
             if key in self._seen_sound_events:
                 continue
             self._seen_sound_events.add(key)
+            if event.get("rise_db"):
+                continue        # loud-sound heuristic row (speech, doors...): shown in the feed, never a fall on its own
             if now - self._last_sound_trigger > 8.0:
                 self._last_sound_trigger = now
                 label = (event.get("top_classes") or "loud sound")[:40]

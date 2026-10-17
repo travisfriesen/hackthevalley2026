@@ -28,7 +28,6 @@ PHRASES: dict[str, str] = {
     "alert": "Emergency alert. Tap the white button if you do not need help.",
     "alert_reminder": "Emergency alert. Tap the white button if you do not need help.",
     "helpsent": "Help is being contacted. Do not move if you are hurt.",
-    "allclear": "All clear.",
     "calibrated": "Calibration complete.",
 }
 
