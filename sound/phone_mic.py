@@ -45,6 +45,20 @@ PAGE = r"""<!doctype html>
 const go = document.getElementById('go'), msg = document.getElementById('msg'), lvl = document.getElementById('lvl');
 let ctx, ws, stream, wake, running = false;
 
+let awakeNote = '';
+async function keepAwake() {
+  try {
+    wake = await navigator.wakeLock.request('screen');
+    wake.addEventListener('release', () => { wake = null; });
+    awakeNote = '';
+  } catch (e) {
+    awakeNote = ' WARNING: could not keep the screen awake (' + (e.name || e) + '): turn off battery saver and set the screen timeout to the maximum.';
+  }
+  if (running) msg.textContent = `Streaming at ${ctx.sampleRate} Hz. Keep this screen on.` + awakeNote;
+}
+// the browser drops the lock whenever the page is hidden: take it again when the tab is back in front
+document.addEventListener('visibilitychange', () => { if (running && document.visibilityState === 'visible' && !wake) keepAwake(); });
+
 async function start() {
   stream = await navigator.mediaDevices.getUserMedia({audio: {
     echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1}});
@@ -73,9 +87,9 @@ async function start() {
     }
   };
   ctx.createMediaStreamSource(stream).connect(node);
-  try { wake = await navigator.wakeLock.request('screen'); } catch (e) {}
+  await keepAwake();
   running = true; go.textContent = 'Stop'; go.className = 'stop';
-  msg.textContent = `Streaming at ${ctx.sampleRate} Hz. Keep this screen on.`;
+  msg.textContent = `Streaming at ${ctx.sampleRate} Hz. Keep this screen on.` + awakeNote;
 }
 
 function stop() {
