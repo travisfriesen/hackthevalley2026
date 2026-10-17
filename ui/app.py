@@ -377,7 +377,8 @@ class App:
             self.activity.appendleft((
                 time.strftime("%H:%M:%S", time.localtime(event["unix_time_approx"])),
                 f"SOUND {event.get('status', '')} "
-                f"rise {event.get('rise_db', '')}dB"))
+                + (f"rise {event['rise_db']}dB" if event.get("rise_db")
+                   else str(event.get("top_classes", ""))[:30])))
             if key in self._seen_sound_events:
                 continue
             self._seen_sound_events.add(key)
