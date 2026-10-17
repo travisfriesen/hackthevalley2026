@@ -31,12 +31,19 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-echo "== starting audio receiver (WAV in /dev/shm) =="
-python3 sound/audio_receiver.py &
-PIDS+=($!)
+# The receiver is started on its own by scripts/pi/start_audio.sh so it survives UI restarts and
+# training sessions; only start one here if nothing is listening on its port yet.
+if ss -ltn | grep -q ':5005 '; then
+    echo "== audio receiver already running =="
+else
+    echo "== starting audio receiver (WAV in /dev/shm) =="
+    python3 sound/audio_receiver.py &
+    PIDS+=($!)
+fi
 
 echo "== starting fall detector (cwd /dev/shm) =="
-( cd /dev/shm && exec python3 "$REPO/sound/fall_detector.py" ) &
+SOUND_PY="${SOUND_PY:-$HOME/venv-sound/bin/python}"   # tensorflow_hub lives in this venv, not system python
+( cd /dev/shm && exec "$SOUND_PY" "$REPO/sound/fall_detector.py" ) &
 PIDS+=($!)
 
 echo "== starting UI (kiosk) =="
