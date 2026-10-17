@@ -262,6 +262,10 @@ class CsiProcessor:
     def push(self, wall_t: float, csi: np.ndarray) -> None:
         amp = np.abs(np.asarray(csi))
         with self.lock:
+            # a malformed live packet (e.g. 65 vs 64 subcarriers) would otherwise kill the feed thread
+            ref = self.usable if self.usable is not None else (self._raw_recent[0] if self._raw_recent else None)
+            if ref is not None and len(amp) != len(ref):
+                return
             self.times.append(wall_t)
             self.last_packet_t = wall_t
             if self.usable is None:
