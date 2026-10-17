@@ -83,7 +83,8 @@ class FileSim:
 
 
 def run(link, args):
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+    log.info("AST on %s", device)
     extractor = ASTFeatureExtractor.from_pretrained(CHECKPOINT)
     model = ASTForAudioClassification.from_pretrained(CHECKPOINT).to(device).eval()
     head = joblib.load(HERE / "head.joblib")
