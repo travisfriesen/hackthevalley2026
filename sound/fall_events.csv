@@ -1,0 +1,7 @@
+unix_time_approx,rise_db,crest_factor,peak_amplitude,top_classes,status
+1792208142.91,23.67,5.77,0.1445,"Speech:0.431; Inside, small room:0.183; Inside, large room or hall:0.158; Door:0.145; Drawer open or close:0.089",REVIEW_CANDIDATE
+1792208157.106,18.86,5.88,0.0829,"Inside, small room:0.240; Door:0.214; Slam:0.212; Inside, large room or hall:0.192; Thump, thud:0.101",REVIEW_CANDIDATE
+1792208162.753,18.05,7.5,0.0893,"Sliding door:0.280; Door:0.170; Inside, small room:0.134; Speech:0.130; Inside, large room or hall:0.115",REVIEW_CANDIDATE
+1792208176.729,15.44,11.3,0.0965,"Inside, small room:0.664; Shuffling cards:0.077; Scissors:0.069; Speech:0.046; Tools:0.043",REVIEW_CANDIDATE
+1792208314.008,21.75,7.96,0.148,"Speech:0.347; Inside, small room:0.106; Inside, large room or hall:0.095; Basketball bounce:0.079; Ping:0.067",REVIEW_CANDIDATE
+1792208325.456,23.39,8.24,0.185,"Door:0.474; Bouncing:0.304; Tap:0.304; Ping:0.255; Thump, thud:0.213",REVIEW_CANDIDATE

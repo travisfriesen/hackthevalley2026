@@ -1,0 +1,623 @@
+{
+  "access": {
+    "embargo": {
+      "active": false,
+      "reason": null
+    },
+    "files": "public",
+    "record": "public",
+    "status": "open"
+  },
+  "created": "2020-10-01T21:35:17.377812+00:00",
+  "custom_fields": {},
+  "deletion_status": {
+    "is_deleted": false,
+    "status": "P"
+  },
+  "files": {
+    "count": 11,
+    "enabled": true,
+    "entries": {
+      "FSD50K.dev_audio.z01": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:faa7cf4cc076fc34a44a479a5ed862a3",
+        "ext": "z01",
+        "id": "5fd8e079-c07c-4cd4-b74d-42729d71485f",
+        "key": "FSD50K.dev_audio.z01",
+        "links": {
+          "content": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.z01/content",
+          "self": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.z01"
+        },
+        "metadata": null,
+        "mimetype": "application/octet-stream",
+        "size": 3221225472,
+        "storage_class": "L"
+      },
+      "FSD50K.dev_audio.z02": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:8f9b66153e68571164fb1315d00bc7bc",
+        "ext": "z02",
+        "id": "76c3643b-32ab-4efc-959d-be8a73b5d72d",
+        "key": "FSD50K.dev_audio.z02",
+        "links": {
+          "content": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.z02/content",
+          "self": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.z02"
+        },
+        "metadata": null,
+        "mimetype": "application/octet-stream",
+        "size": 3221225472,
+        "storage_class": "L"
+      },
+      "FSD50K.dev_audio.z03": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:1196ef47d267a993d30fa98af54b7159",
+        "ext": "z03",
+        "id": "28a8f0e6-3242-43f4-b077-a539521b41f6",
+        "key": "FSD50K.dev_audio.z03",
+        "links": {
+          "content": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.z03/content",
+          "self": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.z03"
+        },
+        "metadata": null,
+        "mimetype": "application/octet-stream",
+        "size": 3221225472,
+        "storage_class": "L"
+      },
+      "FSD50K.dev_audio.z04": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:d088ac4e11ba53daf9f7574c11cccac9",
+        "ext": "z04",
+        "id": "985e1f8f-0bbb-4c53-8de3-9518c4db8406",
+        "key": "FSD50K.dev_audio.z04",
+        "links": {
+          "content": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.z04/content",
+          "self": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.z04"
+        },
+        "metadata": null,
+        "mimetype": "application/octet-stream",
+        "size": 3221225472,
+        "storage_class": "L"
+      },
+      "FSD50K.dev_audio.z05": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:81356521aa159accd3c35de22da28c7f",
+        "ext": "z05",
+        "id": "8a6a19ac-f576-4602-803d-d8580e5cb0e7",
+        "key": "FSD50K.dev_audio.z05",
+        "links": {
+          "content": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.z05/content",
+          "self": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.z05"
+        },
+        "metadata": null,
+        "mimetype": "application/octet-stream",
+        "size": 3221225472,
+        "storage_class": "L"
+      },
+      "FSD50K.dev_audio.zip": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:c480d119b8f7a7e32fdb58f3ea4d6c5a",
+        "ext": "zip",
+        "id": "9f0fbbe1-55d6-4c06-8fa7-e45cf9fca6d6",
+        "key": "FSD50K.dev_audio.zip",
+        "links": {
+          "container": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.zip/container",
+          "content": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.zip/content",
+          "self": "https://zenodo.org/api/records/4060432/files/FSD50K.dev_audio.zip"
+        },
+        "metadata": null,
+        "mimetype": "application/zip",
+        "size": 2306663327,
+        "storage_class": "L"
+      },
+      "FSD50K.doc.zip": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:3516162b82dc2945d3e7feba0904e800",
+        "ext": "zip",
+        "id": "4405cedf-70e9-4fb6-ad09-81fda420efbd",
+        "key": "FSD50K.doc.zip",
+        "links": {
+          "container": "https://zenodo.org/api/records/4060432/files/FSD50K.doc.zip/container",
+          "content": "https://zenodo.org/api/records/4060432/files/FSD50K.doc.zip/content",
+          "self": "https://zenodo.org/api/records/4060432/files/FSD50K.doc.zip"
+        },
+        "metadata": null,
+        "mimetype": "application/zip",
+        "size": 6984,
+        "storage_class": "L"
+      },
+      "FSD50K.eval_audio.z01": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:3090670eaeecc013ca1ff84fe4442aeb",
+        "ext": "z01",
+        "id": "2f97432c-09bd-4039-b954-017e55aa2b1f",
+        "key": "FSD50K.eval_audio.z01",
+        "links": {
+          "content": "https://zenodo.org/api/records/4060432/files/FSD50K.eval_audio.z01/content",
+          "self": "https://zenodo.org/api/records/4060432/files/FSD50K.eval_audio.z01"
+        },
+        "metadata": null,
+        "mimetype": "application/octet-stream",
+        "size": 3221225472,
+        "storage_class": "L"
+      },
+      "FSD50K.eval_audio.zip": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:6fa47636c3a3ad5c7dfeba99f2637982",
+        "ext": "zip",
+        "id": "ee038973-6323-42fe-9393-2f92808de706",
+        "key": "FSD50K.eval_audio.zip",
+        "links": {
+          "container": "https://zenodo.org/api/records/4060432/files/FSD50K.eval_audio.zip/container",
+          "content": "https://zenodo.org/api/records/4060432/files/FSD50K.eval_audio.zip/content",
+          "self": "https://zenodo.org/api/records/4060432/files/FSD50K.eval_audio.zip"
+        },
+        "metadata": null,
+        "mimetype": "application/zip",
+        "size": 3037675767,
+        "storage_class": "L"
+      },
+      "FSD50K.ground_truth.zip": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:ca27382c195e37d2269c4c866dd73485",
+        "ext": "zip",
+        "id": "f76288eb-f156-4639-aaed-a57828599c2f",
+        "key": "FSD50K.ground_truth.zip",
+        "links": {
+          "container": "https://zenodo.org/api/records/4060432/files/FSD50K.ground_truth.zip/container",
+          "content": "https://zenodo.org/api/records/4060432/files/FSD50K.ground_truth.zip/content",
+          "self": "https://zenodo.org/api/records/4060432/files/FSD50K.ground_truth.zip"
+        },
+        "metadata": null,
+        "mimetype": "application/zip",
+        "size": 334701,
+        "storage_class": "L"
+      },
+      "FSD50K.metadata.zip": {
+        "access": {
+          "hidden": false
+        },
+        "checksum": "md5:b9ea0c829a411c1d42adb9da539ed237",
+        "ext": "zip",
+        "id": "62429502-d20d-4e9c-8db8-ecbf95a62a3a",
+        "key": "FSD50K.metadata.zip",
+        "links": {
+          "container": "https://zenodo.org/api/records/4060432/files/FSD50K.metadata.zip/container",
+          "content": "https://zenodo.org/api/records/4060432/files/FSD50K.metadata.zip/content",
+          "self": "https://zenodo.org/api/records/4060432/files/FSD50K.metadata.zip"
+        },
+        "metadata": null,
+        "mimetype": "application/zip",
+        "size": 6700838,
+        "storage_class": "L"
+      }
+    },
+    "order": [],
+    "total_bytes": 24678734449
+  },
+  "id": "4060432",
+  "is_draft": false,
+  "is_published": true,
+  "links": {
+    "access": "https://zenodo.org/api/records/4060432/access",
+    "access_grants": "https://zenodo.org/api/records/4060432/access/grants",
+    "access_links": "https://zenodo.org/api/records/4060432/access/links",
+    "access_request": "https://zenodo.org/api/records/4060432/access/request",
+    "access_users": "https://zenodo.org/api/records/4060432/access/users",
+    "communities": "https://zenodo.org/api/records/4060432/communities",
+    "communities-suggestions": "https://zenodo.org/api/records/4060432/communities-suggestions",
+    "doi": "https://doi.org/10.5281/zenodo.4060432",
+    "draft": "https://zenodo.org/api/records/4060432/draft",
+    "file_modification": "https://zenodo.org/api/records/4060432/file-modification",
+    "files": "https://zenodo.org/api/records/4060432/files",
+    "latest": "https://zenodo.org/api/records/4060432/versions/latest",
+    "latest_html": "https://zenodo.org/records/4060432/latest",
+    "media_files": "https://zenodo.org/api/records/4060432/media-files",
+    "parent": "https://zenodo.org/api/records/4060431",
+    "parent_doi": "https://doi.org/10.5281/zenodo.4060431",
+    "parent_doi_html": "https://zenodo.org/doi/10.5281/zenodo.4060431",
+    "parent_html": "https://zenodo.org/records/4060431",
+    "preview_html": "https://zenodo.org/records/4060432?preview=1",
+    "quota_increase": "https://zenodo.org/api/records/4060432/quota-increase",
+    "request_deletion": "https://zenodo.org/api/records/4060432/request-deletion",
+    "requests": "https://zenodo.org/api/records/4060432/requests",
+    "reserve_doi": "https://zenodo.org/api/records/4060432/draft/pids/doi",
+    "self": "https://zenodo.org/api/records/4060432",
+    "self_doi": "https://doi.org/10.5281/zenodo.4060432",
+    "self_doi_html": "https://zenodo.org/doi/10.5281/zenodo.4060432",
+    "self_html": "https://zenodo.org/records/4060432",
+    "self_iiif_manifest": "https://zenodo.org/api/iiif/record:4060432/manifest",
+    "self_iiif_sequence": "https://zenodo.org/api/iiif/record:4060432/sequence/default",
+    "versions": "https://zenodo.org/api/records/4060432/versions"
+  },
+  "media_files": {
+    "count": 0,
+    "enabled": false,
+    "entries": {},
+    "order": [],
+    "total_bytes": 0
+  },
+  "metadata": {
+    "creators": [
+      {
+        "affiliations": [
+          {
+            "name": "Music Technology Group, Universitat Pompeu Fabra, Barcelona"
+          }
+        ],
+        "person_or_org": {
+          "family_name": "Eduardo Fonseca",
+          "identifiers": [
+            {
+              "identifier": "0000-0001-9872-3917",
+              "scheme": "orcid"
+            }
+          ],
+          "name": "Eduardo Fonseca",
+          "type": "personal"
+        }
+      },
+      {
+        "affiliations": [
+          {
+            "name": "Music Technology Group, Universitat Pompeu Fabra, Barcelona"
+          }
+        ],
+        "person_or_org": {
+          "family_name": "Xavier Favory",
+          "name": "Xavier Favory",
+          "type": "personal"
+        }
+      },
+      {
+        "affiliations": [
+          {
+            "name": "Music Technology Group, Universitat Pompeu Fabra, Barcelona"
+          }
+        ],
+        "person_or_org": {
+          "family_name": "Jordi Pons",
+          "name": "Jordi Pons",
+          "type": "personal"
+        }
+      },
+      {
+        "affiliations": [
+          {
+            "name": "Music Technology Group, Universitat Pompeu Fabra, Barcelona"
+          }
+        ],
+        "person_or_org": {
+          "family_name": "Frederic Font",
+          "identifiers": [
+            {
+              "identifier": "0000-0002-4360-3210",
+              "scheme": "orcid"
+            }
+          ],
+          "name": "Frederic Font",
+          "type": "personal"
+        }
+      },
+      {
+        "affiliations": [
+          {
+            "name": "Music Technology Group, Universitat Pompeu Fabra, Barcelona"
+          }
+        ],
+        "person_or_org": {
+          "family_name": "Xavier Serra",
+          "identifiers": [
+            {
+              "identifier": "0000-0003-1395-2345",
+              "scheme": "orcid"
+            }
+          ],
+          "name": "Xavier Serra",
+          "type": "personal"
+        }
+      }
+    ],
+    "description": "<p>FSD50K is an open dataset of human-labeled sound events containing 51,197&nbsp;<a href=\"https://freesound.org/\">Freesound</a> clips unequally distributed in 200 classes drawn from the&nbsp;<a href=\"https://research.google.com/audioset/ontology/index.html\">AudioSet Ontology</a>. FSD50K has been created at the&nbsp;<a href=\"https://www.upf.edu/web/mtg\">Music Technology Group of Universitat Pompeu Fabra</a>.</p>\n\n<p><strong>Citation</strong></p>\n\n<p>If you use the FSD50K dataset, or part of it, please cite our TASLP paper (available from&nbsp;[<a href=\"https://arxiv.org/abs/2010.00475\">arXiv</a>] [<a href=\"https://ieeexplore.ieee.org/document/9645159\">TASLP</a>]):</p>\n\n<blockquote>\n<pre>@article{fonseca2022FSD50K,\n  title={{FSD50K}: an open dataset of human-labeled sound events},\n  author={Fonseca, Eduardo and Favory, Xavier and Pons, Jordi and Font, Frederic and Serra, Xavier},\n  journal={IEEE/ACM Transactions on Audio, Speech, and Language Processing},\n  volume={30},\n  pages={829--852},\n  year={2022},\n  publisher={IEEE}\n}\n</pre>\n</blockquote>\n\n<p><em>Paper update</em>: This paper has been <a href=\"https://ieeexplore.ieee.org/document/9645159\">published in TASLP</a> at&nbsp;the beginning of 2022. The accepted camera-ready version includes a number of improvements with respect to the initial submission. The main updates include:&nbsp;estimation of the amount of label noise in FSD50K, SNR comparison between FSD50K and AudioSet, improved description of evaluation metrics including equations, clarification of experimental methodology and some results, some content moved to Appendix for readability. The TASLP-accepted camera-ready version is available from <a href=\"https://arxiv.org/abs/2010.00475\">arXiv</a> (in particular, it is v2 in arXiv, displayed by default).</p>\n\n<p><strong>Data curators</strong></p>\n\n<p>Eduardo Fonseca, Xavier Favory, Jordi Pons, Mercedes Collado, Ceren Can, Rachit Gupta, Javier Arredondo, Gary Avendano and Sara Fernandez</p>\n\n<p><strong>Contact</strong></p>\n\n<p>You are welcome to contact Eduardo Fonseca should you have any questions, at efonseca@google.com.</p>\n\n<p>&nbsp;</p>\n\n<p><strong>ABOUT FSD50K</strong></p>\n\n<p>Freesound Dataset 50k (or&nbsp;<strong>FSD50K</strong>&nbsp;for short) is an open dataset of human-labeled sound events containing 51,197&nbsp;<a href=\"https://freesound.org/\">Freesound</a> clips unequally distributed in 200 classes drawn from the&nbsp;<a href=\"https://research.google.com/audioset/ontology/index.html\">AudioSet Ontology</a>&nbsp;[1]. FSD50K has been created at the&nbsp;<a href=\"https://www.upf.edu/web/mtg\">Music Technology Group of Universitat Pompeu Fabra</a>.</p>\n\n<p>What follows is a brief summary of FSD50K&#39;s most important characteristics. Please have a look at our paper (especially Section 4) to extend the basic information provided here with relevant details for its usage, as well as discussion, limitations, applications and more.</p>\n\n<p><strong>Basic characteristics:</strong></p>\n\n<ul>\n\t<li>FSD50K contains 51,197 audio clips from<a href=\"https://freesound.org/\"> Freesound</a>, totalling 108.3 hours of multi-labeled audio</li>\n\t<li>The dataset encompasses 200 sound classes&nbsp;(144 leaf nodes and 56 intermediate nodes) hierarchically organized with a subset of the<a href=\"https://research.google.com/audioset////////ontology/index.html\"> AudioSet Ontology</a>.</li>\n\t<li>The audio content is composed mainly of sound events produced by physical sound sources and production mechanisms, including human sounds, sounds of things, animals, natural sounds, musical instruments and more. The vocabulary can be inspected in&nbsp;<code>vocabulary.csv</code>&nbsp;(see Files section below).</li>\n\t<li>The acoustic material has been manually labeled by humans following a data labeling process using the&nbsp;<a href=\"https://annotator.freesound.org/\">Freesound Annotator</a> platform [2].&nbsp;</li>\n\t<li>Clips are of variable length from 0.3 to 30s, due to the diversity of the sound classes and the preferences of Freesound users when recording sounds.</li>\n\t<li>All clips are provided as uncompressed PCM 16 bit 44.1 kHz mono audio files.</li>\n\t<li>Ground truth labels are provided at the clip-level (i.e., weak labels).</li>\n\t<li>The dataset poses mainly a large-vocabulary multi-label sound event classification problem, but also allows development and evaluation of a variety of machine listening approaches (see Sec. 4D in our paper).</li>\n\t<li>In addition to audio clips and ground truth, additional metadata is made available (including raw annotations, sound predominance ratings, Freesound metadata, and more), allowing a variety of analyses and sound event research tasks (see Files section below).</li>\n\t<li>The audio clips are grouped into a development (<em>dev</em>) set and an evaluation (<em>eval</em>) set such that they do not have clips from the same Freesound uploader.</li>\n</ul>\n\n<p><strong>Dev set:</strong></p>\n\n<ul>\n\t<li>40,966 audio clips totalling 80.4 hours of audio</li>\n\t<li>Avg duration/clip: 7.1s</li>\n\t<li>114,271 smeared labels (i.e., labels propagated in the upwards direction to the root of the ontology)</li>\n\t<li>Labels are correct but could be occasionally incomplete</li>\n\t<li>A train/validation split is provided (Sec. 3H). If a different split is used, it should be specified for reproducibility and fair comparability of results (see Sec. 5C of our paper)</li>\n</ul>\n\n<p><strong>Eval set:</strong></p>\n\n<ul>\n\t<li>10,231 audio clips totalling 27.9 hours of audio</li>\n\t<li>Avg duration/clip: 9.8s</li>\n\t<li>38,596 smeared labels</li>\n\t<li>Eval set is labeled exhaustively (labels are correct and complete for the considered vocabulary)</li>\n</ul>\n\n<p><strong>Note:</strong>&nbsp;All classes in FSD50K are represented in AudioSet, except&nbsp;<code>Crash cymbal</code>,&nbsp;<code>Human group actions</code>,&nbsp;<code>Human voice</code>,&nbsp;<code>Respiratory sounds</code>, and&nbsp;<code>Domestic sounds, home sounds</code>.</p>\n\n<p>&nbsp;</p>\n\n<p><strong>LICENSE</strong></p>\n\n<p>All audio clips in FSD50K are released under Creative Commons (CC) licenses. Each clip has its own license as defined by the clip uploader in Freesound, some of them requiring attribution to their original authors and some forbidding further commercial reuse. Specifically:</p>\n\n<p>The development set consists of 40,966 clips with the following licenses:</p>\n\n<ul>\n\t<li>CC0: 14,959</li>\n\t<li>CC-BY: 20,017</li>\n\t<li>CC-BY-NC: 4616</li>\n\t<li>CC Sampling+: 1374</li>\n</ul>\n\n<p>The evaluation set consists of 10,231 clips with the following licenses:</p>\n\n<ul>\n\t<li>CC0: 4914</li>\n\t<li>CC-BY: 3489</li>\n\t<li>CC-BY-NC: 1425</li>\n\t<li>CC Sampling+: 403</li>\n</ul>\n\n<p>For attribution purposes and to facilitate attribution of these files to third parties, we include a mapping from the audio clips to their corresponding licenses. The licenses are specified in the files&nbsp;<code>dev_clips_info_FSD50K.json</code>&nbsp;and&nbsp;<code>eval_clips_info_FSD50K.json</code>.</p>\n\n<p>In addition, FSD50K as a whole is the result of a curation process and it has an additional license: FSD50K is released under&nbsp;<a href=\"https://creativecommons.org/licenses/by/4.0/\">CC-BY</a>. This license is specified in the&nbsp;<code>LICENSE-DATASET</code>&nbsp;file downloaded with the&nbsp;<code>FSD50K.doc</code>&nbsp;zip file.&nbsp;We note that the choice of one license for the dataset as a whole&nbsp;is not straightforward as it comprises items with different licenses (such as audio clips, annotations, or data split). The choice of a global license in these cases&nbsp;may warrant further investigation (e.g., by someone with a background in copyright law).</p>\n\n<p><strong>Usage of FSD50K for commercial purposes:</strong></p>\n\n<p>If you&#39;d like to use FSD50K for commercial purposes, please contact Eduardo Fonseca and Frederic Font at efonseca@google.com and frederic.font@upf.edu.</p>\n\n<p>Also,&nbsp;if you are interested in using&nbsp;FSD50K for machine learning competitions,&nbsp;please contact Eduardo Fonseca and Frederic Font at efonseca@google.com and frederic.font@upf.edu.</p>\n\n<p>&nbsp;</p>\n\n<p><strong>FILES</strong></p>\n\n<p>FSD50K can be downloaded as a series of zip files with the following directory structure:</p>\n\n<pre>root\n\u2502  \n\u2514\u2500\u2500\u2500FSD50K.dev_audio/                   Audio clips in the dev set\n\u2502  \n\u2514\u2500\u2500\u2500FSD50K.eval_audio/                  Audio clips in the eval set\n\u2502   \n\u2514\u2500\u2500\u2500FSD50K.ground_truth/                Files for FSD50K&#39;s ground truth\n\u2502   \u2502   \n\u2502   \u2514\u2500\u2500\u2500 dev.csv                              Ground truth for the dev set\n\u2502   \u2502        \n\u2502   \u2514\u2500\u2500\u2500 eval.csv                             Ground truth for the eval set            \n\u2502   \u2502            \n\u2502   \u2514\u2500\u2500\u2500 vocabulary.csv                       List of 200 sound classes in FSD50K \n\u2502   \n\u2514\u2500\u2500\u2500FSD50K.metadata/                    Files for additional metadata\n\u2502   \u2502            \n\u2502   \u2514\u2500\u2500\u2500 class_info_FSD50K.json               Metadata about the sound classes\n\u2502   \u2502            \n\u2502   \u2514\u2500\u2500\u2500 dev_clips_info_FSD50K.json           Metadata about the dev clips\n\u2502   \u2502            \n\u2502   \u2514\u2500\u2500\u2500 eval_clips_info_FSD50K.json          Metadata about the eval clips\n\u2502   \u2502            \n\u2502   \u2514\u2500\u2500\u2500 pp_pnp_ratings_FSD50K.json           PP/PNP ratings    \n\u2502   \u2502            \n\u2502   \u2514\u2500\u2500\u2500 collection/                          Files for the *sound collection* format   \n\u2502   \n\u2514\u2500\u2500\u2500FSD50K.doc/\n    \u2502            \n    \u2514\u2500\u2500\u2500README.md                             The dataset description file that you are reading\n    \u2502            \n    \u2514\u2500\u2500\u2500LICENSE-DATASET                       License of the FSD50K dataset as an entity   \n</pre>\n\n<p>Each row (i.e. audio clip) of&nbsp;<code>dev.csv</code>&nbsp;contains the following information:</p>\n\n<ul>\n\t<li><code>fname</code>: the file name without the&nbsp;<code>.wav</code>&nbsp;extension, e.g., the fname&nbsp;<code>64760</code>&nbsp;corresponds to the file&nbsp;<code>64760.wav</code>&nbsp;in disk. This number is the Freesound id. We always use Freesound ids as filenames.</li>\n\t<li><code>labels</code>: the class labels (i.e., the ground truth). Note these class labels are&nbsp;<em>smeared</em>, i.e., the labels have been propagated in the upwards direction to the root of the ontology. More details about the label smearing process can be found in Appendix D of our paper.&nbsp;</li>\n\t<li><code>mids</code>: the Freebase identifiers corresponding to the class labels, as defined in the&nbsp;<a href=\"https://github.com/audioset/ontology/blob/master/ontology.json\">AudioSet Ontology specification</a></li>\n\t<li><code>split</code>: whether the clip belongs to&nbsp;<em>train</em>&nbsp;or&nbsp;<em>val</em>&nbsp;(see paper for details on the proposed split)</li>\n</ul>\n\n<p>Rows in&nbsp;<code>eval.csv</code>&nbsp;follow the same format, except that there is no&nbsp;<code>split</code>&nbsp;column.</p>\n\n<p><strong>Note:</strong>&nbsp;We use a slightly different format than AudioSet for the naming of class labels in order to avoid potential problems with spaces, commas, etc. Example: we use&nbsp;<code>Accelerating_and_revving_and_vroom</code>&nbsp;instead of the original&nbsp;<code>Accelerating, revving, vroom</code>. You can go back to the original AudioSet naming using the information provided in&nbsp;<code>vocabulary.csv</code>&nbsp;(class label and mid for the 200 classes of FSD50K) and the&nbsp;<a href=\"https://github.com/audioset/ontology/blob/master/ontology.json\">AudioSet Ontology specification</a>.</p>\n\n<p><strong>Files with additional metadata (FSD50K.metadata/)</strong></p>\n\n<p>To allow a variety of analysis and approaches with FSD50K, we provide the following metadata:</p>\n\n<ol>\n\t<li>\n\t<p><code>class_info_FSD50K.json</code>: python dictionary where each entry corresponds to one sound class and&nbsp; contains:&nbsp;<code>FAQs</code> utilized during the annotation of the class,&nbsp;<code>examples</code>&nbsp;(representative audio clips), and&nbsp;<code>verification_examples</code> (audio clips presented to raters during annotation as a quality control mechanism). Audio clips are described by the Freesound id.&nbsp;<strong>Note:</strong>&nbsp;It may be that some of these examples are not included in the FSD50K release.</p>\n\t</li>\n\t<li>\n\t<p><code>dev_clips_info_FSD50K.json</code>: python dictionary where each entry corresponds to one dev clip and contains: title, description, tags, clip license, and the uploader name. All these metadata are provided by the uploader.</p>\n\t</li>\n\t<li>\n\t<p><code>eval_clips_info_FSD50K.json</code>: same as before, but with eval clips.</p>\n\t</li>\n\t<li>\n\t<p><code>pp_pnp_ratings.json</code>: python dictionary where each entry corresponds to one clip in the dataset and contains the PP/PNP ratings for the labels associated with the clip. More specifically, these ratings are gathered for the labels validated in&nbsp;<strong>the validation task</strong>&nbsp;(Sec. 3 of paper). This file includes 59,485 labels for the 51,197 clips in FSD50K. Out of these labels:</p>\n\n\t<ul>\n\t\t<li>56,095 labels have inter-annotator agreement (PP twice, or PNP twice). Each of these combinations can be occasionally accompanied by other (non-positive) ratings.</li>\n\t\t<li>3390 labels feature other rating configurations such as&nbsp;<em>i)</em>&nbsp;only one PP rating and one PNP rating (and nothing else). This can be considered inter-annotator agreement at the ``Present&rdquo; level;&nbsp;<em>ii)</em>&nbsp;only one PP rating (and nothing else);&nbsp;<em>iii)</em>&nbsp;only one PNP rating (and nothing else).</li>\n\t</ul>\n\n\t<p>Ratings&#39; legend: PP=1; PNP=0.5; U=0; NP=-1.</p>\n\n\t<p><strong>Note:</strong>&nbsp;The PP/PNP ratings have been provided in the&nbsp;<em>validation</em>&nbsp;task. Subsequently, a subset of these clips corresponding to the eval set was exhaustively labeled in the&nbsp;<em>refinement</em>&nbsp;task, hence receiving additional labels in many cases. For these eval clips, you might want to check their labels in&nbsp;<code>eval.csv</code>&nbsp;in order to have more info about their audio content (see Sec. 3 for details).</p>\n\t</li>\n\t<li>\n\t<p><code>collection/</code>: This folder contains metadata for what we call the&nbsp;<strong><em>sound collection format</em></strong>. This format consists of the raw annotations gathered, featuring all generated class labels without any restriction.&nbsp;</p>\n\n\t<p>We provide the&nbsp;<em>collection</em>&nbsp;format to make available some annotations that do not appear in the FSD50K&nbsp;<em>ground truth</em>&nbsp;release. This typically happens in the case of classes for which we gathered human-provided annotations, but that were discarded in the FSD50K release due to data scarcity (more specifically, they were merged with their parents). In other words, the main purpose of the&nbsp;<code>collection</code>&nbsp;format is to make available annotations for tiny classes. The format of these files in analogous to that of the files in&nbsp;<code>FSD50K.ground_truth/</code>. A couple of examples show the differences between&nbsp;<strong>collection </strong>and&nbsp;<strong>ground truth</strong>&nbsp;formats:</p>\n\n\t<p><code>clip</code>:&nbsp;&nbsp;<code>labels_in_collection</code> &nbsp;&nbsp; --&nbsp;&nbsp;&nbsp; <code>labels_in_ground_truth</code></p>\n\n\t<p><code>51690</code>:&nbsp; <code>Owl</code>&nbsp; &nbsp; -- &nbsp;&nbsp; <code>Bird,Wild_Animal,Animal</code></p>\n\n\t<p><code>190579</code>:&nbsp; <code>Toothbrush,Electric_toothbrush</code> &nbsp;&nbsp; --&nbsp; &nbsp; <code>Domestic_sounds_and_home_sounds</code></p>\n\n\t<p>In the first example, raters provided the label&nbsp;<code>Owl</code>. However, due to data scarcity,&nbsp;<code>Owl</code>&nbsp;labels were merged into their parent&nbsp;<code>Bird</code>. Then, labels&nbsp;<code>Wild_Animal,Animal</code>&nbsp;were added via label propagation (smearing). The second example shows one of the most extreme cases, where raters provided the labels&nbsp;<code>Electric_toothbrush,Toothbrush</code>, which both had few data. Hence, they were merged into Toothbrush&#39;s parent, which unfortunately is&nbsp;<code>Domestic_sounds_and_home_sounds</code>&nbsp;(a rather vague class containing a variety of children sound classes).</p>\n\n\t<p><strong>Note:</strong>&nbsp;Labels in the collection format are not smeared.<br>\n\t<strong>Note:</strong>&nbsp;While in FSD50K&#39;s ground truth the vocabulary encompasses 200 classes (common for dev and eval), since the&nbsp;<em>collection</em> format is composed of raw annotations, the vocabulary here is much larger (over 350 classes), and it is slightly different in dev and eval.</p>\n\t</li>\n</ol>\n\n<p>For further questions, please contact efonseca@google.com, or join the&nbsp;<a href=\"https://groups.google.com/g/freesound-annotator\">freesound-annotator Google Group</a>.</p>\n\n<p>&nbsp;</p>\n\n<p><strong>DOWNLOAD</strong></p>\n\n<p>The folders&nbsp;<code>FSD50K.ground_truth/</code>,&nbsp;<code>FSD50K.metadata/</code>&nbsp;and&nbsp;<code>FSD50K.doc/</code>&nbsp;are compressed into one zip file each. However, due to their large size, the folders&nbsp;<code>FSD50K.dev_audio/</code>&nbsp;and&nbsp;<code>FSD50K.eval_audio/</code>&nbsp;are split into several files. Specifically,&nbsp;<code>FSD50K.dev_audio/</code>&nbsp;is split into six files (note the last file is not&nbsp;<code>*.z06</code>, but&nbsp;<code>*.zip</code>):&nbsp;</p>\n\n<pre><code class=\"language-none\">FSD50K.dev_audio.z01\nFSD50K.dev_audio.z02\nFSD50K.dev_audio.z03\nFSD50K.dev_audio.z04\nFSD50K.dev_audio.z05\nFSD50K.dev_audio.zip</code></pre>\n\n<p>In this case, you first have to download all the files. Once downloaded, we merge all the files into one zip file called e.g.&nbsp;<code>unsplit.zip</code>&nbsp;in your local machine.</p>\n\n<pre><code class=\"language-none\">zip -s 0 FSD50K.dev_audio.zip --out unsplit.zip</code></pre>\n\n<p>Finally, this merged file is unzipped.</p>\n\n<pre><code class=\"language-none\">unzip unsplit.zip</code></pre>\n\n<p>Similar guidelines must be followed for the&nbsp;<code>FSD50K.eval_audio/</code>&nbsp;folder (only two zip files in this case).</p>\n\n<p>&nbsp;</p>\n\n<p><strong>BASELINE SYSTEM</strong></p>\n\n<p>Several baseline systems for FSD50K are available at&nbsp;<a href=\"https://github.com/edufonseca/FSD50K_baseline\">https://github.com/edufonseca/FSD50K_baseline</a>. The experiments are described in Sec 5 of our paper.</p>\n\n<p>&nbsp;</p>\n\n<p><strong>REFERENCES AND LINKS</strong></p>\n\n<p>[1] Jort F Gemmeke, Daniel PW Ellis, Dylan Freedman, Aren Jansen, Wade Lawrence, R Channing Moore, Manoj Plakal, and Marvin Ritter. &quot;Audio set: An ontology and human-labeled dataset for audio events.&quot; In Proceedings of the International Conference on Acoustics, Speech and Signal Processing, 2017. [<a href=\"https://ai.google/research/pubs/pub45857\">PDF</a>]</p>\n\n<p>[2] Eduardo Fonseca, Jordi Pons, Xavier Favory, Frederic Font, Dmitry Bogdanov, Andres Ferraro, Sergio Oramas, Alastair Porter, and Xavier Serra. &quot;Freesound Datasets: A Platform for the Creation of Open Audio Datasets.&quot; In Proceedings of the International Conference on Music Information Retrieval, 2017. [<a href=\"https://repositori.upf.edu/bitstream/handle/10230/33299/fonseca_ismir17_freesound.pdf\">PDF</a>]</p>\n\n<p>Companion site for FSD50K:&nbsp;<a href=\"https://annotator.freesound.org/fsd/release/FSD50K/\">https://annotator.freesound.org/fsd/release/FSD50K/</a><br>\nFreesound Annotator:&nbsp;<a href=\"https://annotator.freesound.org/\">https://annotator.freesound.org/</a><br>\nFreesound:&nbsp;<a href=\"https://freesound.org\">https://freesound.org</a><br>\nEduardo Fonseca&#39;s personal website:&nbsp;<a href=\"http://www.eduardofonseca.net/\">http://www.eduardofonseca.net/</a><br>\nMore datasets collected by us:&nbsp;<a href=\"http://www.eduardofonseca.net/datasets/\">http://www.eduardofonseca.net/datasets/</a></p>\n\n<p>&nbsp;</p>\n\n<p><strong>ACKNOWLEDGMENTS</strong></p>\n\n<p>The authors would like to thank everyone who contributed to FSD50K with annotations, and especially Mercedes Collado, Ceren Can, Rachit Gupta, Javier Arredondo, Gary Avendano and Sara Fernandez for their commitment and perseverance. The authors would also like to thank Daniel P.W. Ellis and Manoj Plakal from Google Research for valuable discussions. This work is partially supported by the European Union&rsquo;s Horizon 2020 research and innovation programme under grant agreement No 688382&nbsp;<a href=\"https://www.audiocommons.org/\">AudioCommons</a>, and two Google Faculty Research Awards&nbsp;<a href=\"https://ai.googleblog.com/2018/03/google-faculty-research-awards-2017.html\">2017</a>&nbsp;and&nbsp;<a href=\"https://ai.googleblog.com/2019/03/google-faculty-research-awards-2018.html\">2018</a>, and the Maria de Maeztu Units of Excellence Programme (MDM-2015-0502).</p>\n\n<p>&nbsp;</p>",
+    "funding": [
+      {
+        "award": {
+          "acronym": "AudioCommons",
+          "id": "00k4n6c32::688382",
+          "identifiers": [
+            {
+              "identifier": "https://cordis.europa.eu/projects/688382",
+              "scheme": "url"
+            }
+          ],
+          "number": "688382",
+          "program": "H2020-EU.2.1.1.",
+          "title": {
+            "en": "Audio Commons: An Ecosystem for Creative Reuse of Audio Content"
+          }
+        },
+        "funder": {
+          "id": "00k4n6c32",
+          "name": "European Commission"
+        }
+      }
+    ],
+    "publication_date": "2020-10-02",
+    "publisher": "Zenodo",
+    "related_identifiers": [
+      {
+        "identifier": "https://arxiv.org/pdf/2010.00475.pdf",
+        "relation_type": {
+          "id": "ispartof",
+          "title": {
+            "de": "Ist Teil von",
+            "en": "Is part of"
+          }
+        },
+        "scheme": "url"
+      }
+    ],
+    "resource_type": {
+      "id": "dataset",
+      "title": {
+        "de": "Datensatz",
+        "en": "Dataset"
+      }
+    },
+    "rights": [
+      {
+        "description": {
+          "en": ""
+        },
+        "id": "other-at",
+        "title": {
+          "en": "Other (Attribution)"
+        }
+      }
+    ],
+    "subjects": [
+      {
+        "subject": "audio dataset"
+      },
+      {
+        "subject": "sound event recognition"
+      },
+      {
+        "subject": "sound event classification"
+      },
+      {
+        "subject": "sound event tagging"
+      },
+      {
+        "subject": "data collection"
+      },
+      {
+        "subject": "everyday sounds"
+      },
+      {
+        "subject": "environmental sound"
+      }
+    ],
+    "title": "FSD50K",
+    "version": "1.0"
+  },
+  "parent": {
+    "access": {
+      "owned_by": {
+        "user": "55288"
+      }
+    },
+    "communities": {
+      "entries": [
+        {
+          "access": {
+            "member_policy": "open",
+            "members_visibility": "public",
+            "record_submission_policy": "open",
+            "review_policy": "open",
+            "visibility": "public"
+          },
+          "children": {
+            "allow": false
+          },
+          "created": "2018-05-22T08:43:52.609580+00:00",
+          "custom_fields": {},
+          "deletion_status": {
+            "is_deleted": false,
+            "status": "P"
+          },
+          "id": "86d38da6-f853-44b1-bd7a-91a82d2233ef",
+          "links": {},
+          "metadata": {
+            "curation_policy": "",
+            "page": "<p>The <strong>Music Technology Group (MTG) </strong>of the Universitat Pompeu Fabra in Barcelona, part of its Department of Information and Communication Technologies,&nbsp;carries out research on topics such as audio signal processing, music information retrieval, musical interfaces, and computational musicology. The MTG wants to contribute to the improvement of the information and&nbsp;communication&nbsp;technologies related to sound and music, carrying out competitive research at the international level and at the same time transferring its results to society. To that goal, the MTG aims at finding a balance between basic and applied research while promoting interdisciplinary approaches that incorporate knowledge and methodologies from both scientific/technological and humanistic/artistic disciplines.</p>",
+            "title": "Music Technology Group"
+          },
+          "revision_id": 0,
+          "slug": "mtgupf",
+          "updated": "2018-05-22T09:08:00.286528+00:00"
+        },
+        {
+          "access": {
+            "member_policy": "open",
+            "members_visibility": "public",
+            "record_submission_policy": "open",
+            "review_policy": "open",
+            "visibility": "public"
+          },
+          "children": {
+            "allow": false
+          },
+          "created": "2019-01-01T23:56:39.039385+00:00",
+          "custom_fields": {},
+          "deletion_status": {
+            "is_deleted": false,
+            "status": "P"
+          },
+          "id": "d05487af-e5f9-46c5-9a73-8244c7ea6b5f",
+          "links": {},
+          "metadata": {
+            "curation_policy": "<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n\r\n<p>&nbsp;</p>\r\n",
+            "page": "<p>Freesound Datasets is a Zenodo community to host datasets based on Freesound audio content.</p>\r\n\r\n<p>Some datasets are collected through the Freesound Annotator, a platform for the collaborative creation of open audio collections labeled by humans and based on Freesound content. Freesound Annotator is created and maintained by the&nbsp;Music Technology Group (MTG)<strong>&nbsp;</strong>of the Universitat Pompeu Fabra in Barcelona.</p>\r\n\r\n<p>Other datasets have been annotated through other means, often developed also at the Music Technology Group.</p>\r\n\r\n<p>https://annotator.freesound.org/</p>\r\n\r\n<p>https://www.upf.edu/web/mtg</p>",
+            "title": "Freesound Datasets"
+          },
+          "revision_id": 0,
+          "slug": "freesound-datasets",
+          "updated": "2020-02-24T15:03:50.730086+00:00"
+        },
+        {
+          "access": {
+            "member_policy": "open",
+            "members_visibility": "restricted",
+            "record_submission_policy": "open",
+            "review_policy": "closed",
+            "visibility": "public"
+          },
+          "children": {
+            "allow": true
+          },
+          "created": "2022-11-23T15:53:29.436323+00:00",
+          "custom_fields": {},
+          "deletion_status": {
+            "is_deleted": false,
+            "status": "P"
+          },
+          "id": "f0a8b890-f97a-4eb2-9eac-8b8a712d3a6c",
+          "links": {},
+          "metadata": {
+            "curation_policy": "<h2>Curation policy</h2>\n<p>The EU Open Research Repository serves as a repository for research outputs (data, software, posters, presentations, publications, etc) which have been funded under an EU research funding programme such as Horizon Europe, Euratom or earlier Framework Programmes.</p>\n<p>The community is managed by CERN on behalf of the European Commission.&nbsp;</p>\n<p><a href=\"https://about.zenodo.org/policies/\">Zenodo&rsquo;s general policies</a> and <a href=\"https://about.zenodo.org/terms/\">Terms of Use</a> apply to all content.</p>\n<h3>Scope</h3>\n<p>The EU Open Research Repository accepts all digital research objects which is a research output stemming from one of EU&rsquo;s research and innovation funding programmes. The funding programmes currently include:</p>\n<ul>\n<li>\n<p>Horizon Europe (including ERC, MSCA), earlier Framework Programmes (eg Horizon 2020) as well as Euratom.</p>\n</li>\n</ul>\n<p>In line with the principle as open as possible, as closed as necessary both public and restricted content is accepted. See note on how <a href=\"https://about.zenodo.org/infrastructure/\">Zenodo handles restricted content</a>.</p>\n<h3>Content submission</h3>\n<p>EU programme beneficiaries are eligible to submit content to the community. The community supports three types of content submissions:</p>\n<ul>\n<li>\n<p>Submission via an EU Project Community (through user interface or programmatic APIs).</p>\n</li>\n<li>\n<p>Submission directly to the EU Open Research Repository.</p>\n</li>\n<li>\n<p>Automated harvesting from existing Zenodo content.</p>\n</li>\n</ul>\n<h4>Project community (preferred)</h4>\n<p>A representative of an EU project may request an EU Project Community and invite other project participants as members of the community. The project community is linked to one or more European Commission grants. All records in the project community are automatically integrated into the EU Open Research Repository immediately upon acceptance into the project community.&nbsp;</p>\n<h4>Direct submission</h4>\n<p>Any user may submit a record directly to the EU Open Research Repository. The submission will be moderated by Zenodo staff for compliance with the minimal required metadata requirements and its correctness.</p>\n<h4>Automated harvesting</h4>\n<p>Records found among Zenodo&rsquo;s existing content will on a regular basis automatically be integrated if they are found to comply with the requirements. The submissions through this method are integrated into the EU Open Research Repository with delay in a fully automated way.</p>\n<h3>Descriptive information</h3>\n<h4>Minimal metadata requirements</h4>\n<p>Records in the EU Open Research Repository are required to comply with the following minimal metadata requirements:</p>\n<ul>\n<li>\n<p>Visibility: Both public and restricted (with or without embargo and/or access request)</p>\n</li>\n<li>\n<p>Resource types: All resource types.</p>\n</li>\n<li>\n<p>Licenses: Public and embargoed records MUST specify a license. The chosen license SHOULD be compliant with the Horizon Europe open science requirements (see <a href=\"/communities/eu/pages/open-science\">Open Science in Horizon Europe</a>)</p>\n</li>\n<li>\n<p>Funding information: Records MUST specify at least one grant from the European Commission.</p>\n</li>\n<li>Journal articles: Records MUST specify at the publishing venue (e.g. the journal the article was published in).</li>\n<li>\n<p>Creators: Creators SHOULD be identified with a persistent identifier (e.g. ORCID, GND, &hellip;), and affiliations SHOULD be identified with a persistent identifier (e.g. ROR, ISNI, &hellip;)</p>\n</li>\n<li>\n<p>Subjects: Records SHOULD specify one or more fields of science from the <a href=\"https://op.europa.eu/en/web/eu-vocabularies/euroscivoc\">European Science Vocabulary</a>.</p>\n</li>\n</ul>\n<p>These metadata requirements comes from the related open science requirements in Horizon Europe which are detailed in each project's grant agreement.</p>\n<h3>Review &amp; moderation</h3>\n<p>All submissions undergo automated curation checks for compliance with the policy. Submissions through project communities are in addition reviewed by the project community. Submission directly to the EU Open Research Repository is in addiotn reviewed by Zenodo staff.</p>\n<p>Community curators may at any point edit metadata of the records in the community without notice through human or automated processing. The curators may at their sole discretion remove records from the community that are deemed not to comply with the content and curation policy or which are deemed of insufficient quality.</p>\n<h3>Updates</h3>\n<p>The content and curation policy is subject to change by the community owner at any time and without notice, other than through updating this page.</p>",
+            "description": "Open repository for EU-funded research outputs from Horizon Europe, Euratom, and earlier Framework Programmes.",
+            "organizations": [
+              {
+                "id": "00k4n6c32"
+              }
+            ],
+            "page": "<h2>About</h2>\n<p>The EU Open Research Repository is a Zenodo-community dedicated to fostering open science and enhancing the visibility and accessibility of research outputs funded by the European Union. The community is managed by CERN on behalf of the European Commission.</p>\n<h3>Mission</h3>\n<p>The mission of the repository is to support the implementation of the EU's open science policy, providing a trusted and comprehensive space for researchers to share their research outputs such as data, software, reports, presentations, posters and more. The EU Open Research Repository simplifies the process of complying with open science requirements, ensuring that research outputs from Horizon Europe, Euratom, and earlier Framework Programmes are freely accessible, thereby accelerating scientific discovery and innovation.</p>\n<h3>EU Open Research Repository vs Open Research Europe (ORE)</h3>\n<p>The EU Open Research Repository serves as a complementary platform to the <a href=\"https://open-research-europe.ec.europa.eu/\">Open Research Europe</a> (ORE) publishing platform. Open Research Europe focuses on providing a publishing venue for peer-reviewed articles, ensuring that research meets rigorous academic standards. The EU Open Research Repository provides a space for all the other research outputs including data sets, software, posters, and presentations that are out of scope for ORE. This holistic approach enables researchers to not only publish their findings but also share the underlying data and materials that support their work, fostering transparency and reproducibility in the scientific process.&nbsp;</p>\n<h3>Funding</h3>\n<p>The EU Open Research Repository is funded by the European Union under grant agreement no. <a href=\"https://cordis.europa.eu/project/id/101256740\">101256740</a>&nbsp; (HORIZON-ZEN Plus). For more information about the project see <a href=\"https://about.zenodo.org/projects/horizon-zen-plus/\">https://about.zenodo.org/projects/horizon-zen/.</a></p>",
+            "title": "EU Open Research Repository",
+            "type": {
+              "id": "organization"
+            },
+            "website": "https://research-and-innovation.ec.europa.eu"
+          },
+          "revision_id": 28,
+          "slug": "eu",
+          "theme": {
+            "brand": "horizon",
+            "enabled": true,
+            "style": {
+              "font": {
+                "family": "Arial, sans-serif",
+                "size": "16px",
+                "weight": 600
+              },
+              "mainHeaderBackgroundColor": "#FFFFFF",
+              "primaryColor": "#004494",
+              "primaryTextColor": "#FFFFFF",
+              "secondaryColor": "#FFD617",
+              "secondaryTextColor": "#000000",
+              "tertiaryColor": "#e3eefd",
+              "tertiaryTextColor": "#1c5694"
+            }
+          },
+          "updated": "2026-08-17T14:29:01.587911+00:00"
+        },
+        {
+          "access": {
+            "member_policy": "open",
+            "members_visibility": "public",
+            "record_submission_policy": "open",
+            "review_policy": "open",
+            "visibility": "public"
+          },
+          "children": {
+            "allow": false
+          },
+          "created": "2016-11-07T19:12:28.860929+00:00",
+          "custom_fields": {},
+          "deletion_status": {
+            "is_deleted": false,
+            "status": "P"
+          },
+          "id": "f9b7307d-def2-422e-ac8a-92f8a4588b85",
+          "links": {},
+          "metadata": {
+            "curation_policy": "<p>Resources by staff at the Department of Information and Communication Technologies, Universitat Pompeu Fabra, Barcelona, with emphasis on resources used in the context of the the Mar&iacute;a de Maeztu Strategic Research Program on data-driven knowledge extraction, by members of the Department of Information and Communication Technologies, Universitat Pompeu Fabra, Barcelona</p>\n\n<p>http://www.upf.edu/mdm-dtic</p>",
+            "description": "Department of Engineering. Maria de Maeztu (MdM) Unit of Excellence. UPF, Barcelona\n\nMaria de Maeztu Unit of Excellence -\n\nMdM Strategic Research Program on data-driven knowledge extraction\n\nhttp://www.upf.edu/mdm-dtic",
+            "title": "Department of Engineering, UPF, Barcelona"
+          },
+          "revision_id": 3,
+          "slug": "mdm-dtic-upf",
+          "updated": "2025-11-06T12:55:56.723298+00:00"
+        }
+      ],
+      "ids": [
+        "86d38da6-f853-44b1-bd7a-91a82d2233ef",
+        "d05487af-e5f9-46c5-9a73-8244c7ea6b5f",
+        "f0a8b890-f97a-4eb2-9eac-8b8a712d3a6c",
+        "f9b7307d-def2-422e-ac8a-92f8a4588b85"
+      ]
+    },
+    "id": "4060431",
+    "pids": {
+      "doi": {
+        "client": "datacite",
+        "identifier": "10.5281/zenodo.4060431",
+        "provider": "datacite"
+      }
+    }
+  },
+  "pids": {
+    "doi": {
+      "client": "datacite",
+      "identifier": "10.5281/zenodo.4060432",
+      "provider": "datacite"
+    },
+    "oai": {
+      "identifier": "oai:zenodo.org:4060432",
+      "provider": "oai"
+    }
+  },
+  "revision_id": 12,
+  "stats": {
+    "all_versions": {
+      "data_volume": 950680597630038.0,
+      "downloads": 347019,
+      "unique_downloads": 118476,
+      "unique_views": 78216,
+      "views": 91012
+    },
+    "this_version": {
+      "data_volume": 948647231694524.0,
+      "downloads": 346281,
+      "unique_downloads": 118301,
+      "unique_views": 77955,
+      "views": 90723
+    }
+  },
+  "status": "published",
+  "swh": {},
+  "updated": "2022-04-24T04:38:57.375654+00:00",
+  "versions": {
+    "index": 1,
+    "is_latest": true
+  }
+}
