@@ -15,6 +15,7 @@ import argparse
 import logging
 import math
 import os
+import sys
 import tempfile
 import threading
 import time
@@ -22,7 +23,13 @@ import wave
 from pathlib import Path
 
 import numpy as np
-import sounddevice as sd
+
+try:
+    import sounddevice as sd
+except (ImportError, OSError):
+    # Not installed, or the PortAudio library is missing. Only the parts that
+    # touch a microphone need it (audio_receiver.py on the Pi doesn't).
+    sd = None
 
 
 DEFAULT_SAMPLE_RATE = 16_000
@@ -36,6 +43,18 @@ METER_INTERVAL = 0.5
 # fall_detector.py) has the WAV open, so retry briefly instead of giving up.
 REPLACE_RETRIES = 10
 REPLACE_RETRY_DELAY = 0.05
+
+def default_wav_path() -> Path:
+    """On Linux (e.g. a Raspberry Pi) keep the WAV in RAM (/dev/shm).
+
+    The file is rewritten every 2 s (~10 MB each time), which would wear out
+    an SD card within weeks. fall_detector.py uses the same default.
+    """
+    shm = Path("/dev/shm")
+    if sys.platform.startswith("linux") and shm.is_dir() and os.access(shm, os.W_OK):
+        return shm / "rolling_audio.wav"
+    return Path("rolling_audio.wav")
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -206,6 +225,46 @@ def resolve_device(device: str | int | None, exclusive: bool):
     raise SystemExit(f"No WASAPI input device matching {device!r}")
 
 
+def pick_stream_format(device, rate_arg: int | None) -> tuple[int, int]:
+    """Choose (sample_rate, channels) the input device actually supports.
+
+    Prefers 16 kHz mono, then the device's native rate. Some Linux/ALSA
+    devices (USB mics opened directly) refuse 16 kHz or mono.
+    """
+    try:
+        info = sd.query_devices(device, "input")
+    except (sd.PortAudioError, ValueError) as exc:
+        raise SystemExit(
+            f"No usable audio input device ({exc}). Plug in a microphone "
+            "and run with --list-devices, then pass --device."
+        )
+
+    native = int(info["default_samplerate"])
+    max_channels = int(info["max_input_channels"])
+    rates = [rate_arg] if rate_arg else [DEFAULT_SAMPLE_RATE, native]
+
+    for rate in dict.fromkeys(rates):
+        for channels in (1, 2):
+            if channels > max_channels:
+                continue
+            try:
+                sd.check_input_settings(
+                    device=device,
+                    channels=channels,
+                    dtype="int16",
+                    samplerate=rate,
+                )
+                return rate, channels
+            except sd.PortAudioError:
+                continue
+
+    raise SystemExit(
+        f"{info['name']!r} does not support 16-bit capture at "
+        f"{' or '.join(str(r) for r in rates)} Hz. Try --list-devices and "
+        "a different --device, or set --rate."
+    )
+
+
 def capture_loop(
     buffer: RollingBuffer,
     stop: threading.Event,
@@ -298,8 +357,8 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("rolling_audio.wav"),
-        help="Output WAV path (default: ./rolling_audio.wav)",
+        default=default_wav_path(),
+        help="Output WAV path (default: %(default)s)",
     )
     parser.add_argument(
         "--device",
@@ -331,6 +390,12 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    if sd is None:
+        raise SystemExit(
+            "sounddevice/PortAudio is not available. Run: pip install "
+            "sounddevice  (on Linux also: sudo apt install libportaudio2)"
+        )
+
     if args.list_devices:
         print(sd.query_devices())
         return
@@ -342,15 +407,18 @@ def main() -> None:
 
     channels = 1
     extra_settings = None
-    sample_rate = args.rate or DEFAULT_SAMPLE_RATE
 
-    if args.exclusive:
+    if not args.exclusive:
+        sample_rate, channels = pick_stream_format(device, args.rate)
+    else:
         # Exclusive mode can't resample, so use the device's native format.
         info = sd.query_devices(device)
         channels = max(1, min(2, int(info["max_input_channels"])))
         sample_rate = args.rate or int(info["default_samplerate"])
         extra_settings = sd.WasapiSettings(exclusive=True)
         log.info("Exclusive mode on %s", info["name"])
+
+    log.info("Input format: %d Hz, %d channel(s)", sample_rate, channels)
 
     meter = Meter() if args.meter else None
     buffer = RollingBuffer(sample_rate * SECONDS_TO_KEEP)
