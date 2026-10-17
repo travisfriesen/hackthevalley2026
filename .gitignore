@@ -1,5 +1,15 @@
+scripts/pico/config.py
 .venv/
 __pycache__/
+
+# touchscreen UI: per-installation state, never commit
+ui/settings.json
+ui/room.json
+ui/voice_cache/
+ui/voice_cache_test/
+ui_events.jsonl
+
+# sound detector: datasets, embeddings and training outputs
 sound/data/
 sound/ast/*.npz
 sound/ast/esc50_ast_model/
