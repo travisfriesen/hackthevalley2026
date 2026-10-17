@@ -129,7 +129,14 @@ class Dashboard(Screen):
                                 app.manual_help, size=16)
         self.help.pack(fill="x", side="bottom", ipady=10)
 
+    # Redraw at 5 Hz while the logic still ticks at 10 Hz: on the Pi (Tk -> Xwayland)
+    # the redraw rate drives CPU use and the lag, and bars/maps look fine at 5 Hz.
+    DRAW_INTERVAL = 0.2
+
     def refresh(self, app) -> None:
+        if app.now - getattr(self, "_last_draw", -1.0) < self.DRAW_INTERVAL:
+            return
+        self._last_draw = app.now
         d = app.d
         self.clock.config(text=d["clock"])
         self.pill_presence.set(
