@@ -1,0 +1,3 @@
+scripts/pico/config.py
+.venv/
+__pycache__/
