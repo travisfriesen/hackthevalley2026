@@ -53,8 +53,12 @@ class PiLink:
 
     def fetch(self):
         """(time the newest sample was published, last 14 s as float32) or None. Only new audio is transferred."""
-        out = subprocess.run(self.cmd + [f"{self.prefix}audio_tail {self.prev:.6f}"],
-                             capture_output=True, timeout=20).stdout
+        try:
+            out = subprocess.run(self.cmd + [f"{self.prefix}audio_tail {self.prev:.6f}"],
+                                 capture_output=True, timeout=20).stdout
+        except (subprocess.TimeoutExpired, OSError) as exc:  # Pi offline: wait for it, do not crash
+            self._unreachable(exc)
+            return None
         head, _, pcm = out.partition(b"\n")
         try:
             mtime, nbytes = float(head.split()[0]), int(head.split()[1])
@@ -68,7 +72,16 @@ class PiLink:
         return (mtime, self.buf) if len(self.buf) == FETCH else None
 
     def append(self, line):
-        subprocess.run(self.cmd + [f"{self.prefix}append_event"], input=line.encode(), timeout=15)
+        try:
+            subprocess.run(self.cmd + [f"{self.prefix}append_event"], input=line.encode(), timeout=15)
+        except (subprocess.TimeoutExpired, OSError) as exc:
+            self._unreachable(exc)
+            log.error("could not deliver event to the Pi, dropped: %s", line.strip())
+
+    def _unreachable(self, exc):
+        if time.time() - getattr(self, "_warned", 0) > 30:
+            self._warned = time.time()
+            log.warning("Pi unreachable (%s); retrying", type(exc).__name__)
 
 
 class FileSim:
@@ -129,6 +142,7 @@ def run(link, args):
             continue
 
         window = x[-WIN:]
+        probs = None
         peak = float(np.abs(x[-2 * SR:]).max())
         ongoing = np.abs(x[-3 * SR:]).max() > 0.02  # the window keeps a sound for 10 s: don't re-alert once it has ended
         if np.abs(window).max() > 0.01:  # skip silence
@@ -152,7 +166,11 @@ def run(link, args):
             seen_spikes = (seen_spikes + [t])[-50:]
             pf = fall3s.predict_proba(clip_around(x, c))
             log.info("spike at %.1f: P(fall)=%.2f", t, pf)
-            if pf >= args.fall_threshold:
+            # the fine-tuned AST hears the same window: if it calls it an ordinary sound, a spike is a door/dropped object
+            benign = probs is not None and args.model and probs[names.index("not_distress")] > args.veto
+            if benign:
+                log.info("  vetoed: AST says not_distress %.2f", probs[names.index("not_distress")])
+            if pf >= args.fall_threshold and not benign:
                 link.append(event_row(t, float(np.abs(x[max(0, c - SR):c + SR]).max()), "fall", pf, "REVIEW_CANDIDATE"))
 
         if not sim:
@@ -166,7 +184,8 @@ def main():
     ap.add_argument("--forced", action="store_true", help="the ssh key's forced command is cloud_gate.sh (cloud server)")
     ap.add_argument("--model", help="directory of a fine-tuned AST (finetune.py output) instead of the frozen model + head")
     ap.add_argument("--threshold", type=float, help="min AST probability for distress/glass/siren (default 0.6 frozen, 0.4 for --model: its probabilities are flatter)")
-    ap.add_argument("--fall-threshold", type=float, default=0.8, help="min fall3s probability for a fall")
+    ap.add_argument("--fall-threshold", type=float, default=0.9, help="min fall3s probability for a fall")
+    ap.add_argument("--veto", type=float, default=0.5, help="with --model: drop a fall when AST's not_distress probability is above this")
     ap.add_argument("--cooldown", type=float, default=10.0, help="seconds between repeat alerts of one class")
     ap.add_argument("--hop", type=float, default=1.0)
     ap.add_argument("--wav", help="offline test: replay this 16 kHz wav as the Pi's rolling audio")
