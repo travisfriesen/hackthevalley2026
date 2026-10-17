@@ -1,3 +1,10 @@
 scripts/pico/config.py
 .venv/
 __pycache__/
+
+# touchscreen UI: per-installation state, never commit
+ui/settings.json
+ui/room.json
+ui/voice_cache/
+ui/voice_cache_test/
+ui_events.jsonl
