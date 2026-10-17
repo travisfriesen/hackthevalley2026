@@ -16,3 +16,4 @@ sound/ast/esc50_ast_model/
 sound/ast/checkpoints/
 sound/ast/*.log
 sound/ast/manifest.csv
+sound/ast/models/
