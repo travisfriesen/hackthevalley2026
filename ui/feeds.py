@@ -56,7 +56,7 @@ class UltraFeed:
     def __init__(self, settings: dict, sim=None):
         self.settings = settings
         self.sim = sim
-        self.mode = settings.get("ultra_mode", "sim")
+        self.mode = settings.get("ultra_mode", "gpio")
         self.latest: tuple[float, list] | None = None
         self.samples: deque = deque(maxlen=2400)     # ~4 min at 10 Hz
         self._stop = threading.Event()
@@ -72,8 +72,7 @@ class UltraFeed:
         try:
             from gpiozero import DistanceSensor
         except Exception as exc:                     # noqa: BLE001
-            self.mode = "sim"
-            self.error = f"gpiozero unavailable ({exc}); using sim"
+            self.error = f"gpiozero unavailable ({exc}); no ultrasonic data"
             log.warning(self.error)
             return
         self._sensors = [

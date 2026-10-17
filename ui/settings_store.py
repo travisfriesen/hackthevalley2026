@@ -38,15 +38,15 @@ DEFAULTS: dict = {
     "motion_window_s": 2.0,        # window length
     "motion_factor": 1.5,          # threshold = calibrated baseline * factor
     "csi_mac": "2c:cf:67:c5:c4:14",
-    "csi_mode": "sim",             # live | replay | sim
+    "csi_mode": "live",            # live | replay | sim (replay/sim only via --csi)
     "replay_path": "data/session1/walking_20261016_235147.pcap",
     "replay_speed": 1.0,
     "replay_loop": True,
     "tcpdump_cmd": ["tcpdump", "-i", "wlan0", "-w", "-", "-U"],
-    "live_dead_s": 5.0,            # live CSI this quiet -> fall back to replay
+    "live_dead_s": 5.0,            # live CSI this quiet -> activity note (never sim)
 
     # Ultrasonic (BCM pins; proven in scripts/pi/us_log.py)
-    "ultra_mode": "sim",           # gpio | sim
+    "ultra_mode": "gpio",          # gpio | sim (sim only via --us)
     "sensors": [
         {"label": "us1", "echo": 17, "trig": 4},
         {"label": "us2", "echo": 27, "trig": 22},
