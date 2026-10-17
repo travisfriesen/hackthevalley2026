@@ -2,7 +2,7 @@
 
 Every second it pulls the newest 14 s of the Pi's rolling audio over ssh, classifies it, and appends
 events to the Pi's fall_events.csv, which the UI already watches:
-  - AST + head.joblib on the last 10 s -> distress / glass / siren          (status DISTRESS_SOUND)
+  - AST (+ head.joblib, or a fine-tuned --model) on the last 10 s -> distress / glass / siren          (status DISTRESS_SOUND)
   - spike.py + fall3s.py on each loud impulse                                  (status REVIEW_CANDIDATE)
 
 Usage: python remote_detector.py [--pi travis@100.127.214.108] [--threshold 0.6] [--fall-threshold 0.8]
@@ -30,31 +30,45 @@ CHECKPOINT = "MIT/ast-finetuned-audioset-10-10-0.4593"
 SR = 16000
 WIN, FETCH = 10 * SR, 14 * SR
 AST_ALERTS = {"distress", "glass", "siren"}
-PI_WAV, PI_EVENTS = "/dev/shm/rolling_audio.wav", "/dev/shm/fall_events.csv"
 log = logging.getLogger("remote_detector")
 
 
 class PiLink:
-    """The Pi over one multiplexed ssh connection."""
+    """The Pi over one multiplexed ssh connection, through scripts/pi/cloud_gate.sh.
 
-    def __init__(self, host):
+    prefix: how to reach the gate. Direct ssh (from the Mac): run the script by path.
+    With a restricted key whose forced command is the gate (the cloud server): prefix is empty.
+    """
+
+    GATE = "~/hackthevalley2026/scripts/pi/cloud_gate.sh "
+
+    def __init__(self, host, forced=False):
         self.cmd = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", "-o", "ControlMaster=auto",
                     "-o", "ControlPath=~/.ssh/cm-kaze-%C", "-o", "ControlPersist=120", host]
+        self.prefix = "" if forced else self.GATE
+        self.prev, self.buf = 0.0, np.zeros(0, np.float32)
 
     def now(self):
         return time.time()
 
     def fetch(self):
-        """(time the newest sample was published, last 14 s as float32) or None."""
-        out = subprocess.run(self.cmd + [f"stat -c %.9Y {PI_WAV} && tail -c {FETCH * 2} {PI_WAV}"],
-                             capture_output=True, timeout=15).stdout
+        """(time the newest sample was published, last 14 s as float32) or None. Only new audio is transferred."""
+        out = subprocess.run(self.cmd + [f"{self.prefix}audio_tail {self.prev:.6f}"],
+                             capture_output=True, timeout=20).stdout
         head, _, pcm = out.partition(b"\n")
-        if len(pcm) < FETCH * 2:
+        try:
+            mtime, nbytes = float(head.split()[0]), int(head.split()[1])
+        except (IndexError, ValueError):
             return None
-        return float(head), np.frombuffer(pcm[-FETCH * 2:], "<i2").astype(np.float32) / 32768
+        if len(pcm) != nbytes:
+            return None
+        new = np.frombuffer(pcm, "<i2").astype(np.float32) / 32768
+        self.buf = np.concatenate([self.buf, new])[-FETCH:]
+        self.prev = mtime
+        return (mtime, self.buf) if len(self.buf) == FETCH else None
 
     def append(self, line):
-        subprocess.run(self.cmd + [f"cat >> {PI_EVENTS}"], input=line.encode(), timeout=15)
+        subprocess.run(self.cmd + [f"{self.prefix}append_event"], input=line.encode(), timeout=15)
 
 
 class FileSim:
@@ -85,11 +99,18 @@ class FileSim:
 def run(link, args):
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     log.info("AST on %s", device)
-    extractor = ASTFeatureExtractor.from_pretrained(CHECKPOINT)
-    model = ASTForAudioClassification.from_pretrained(CHECKPOINT).to(device).eval()
-    head = joblib.load(HERE / "head.joblib")
+    if args.model:  # fine-tuned classifier: the whole network, not backbone + logistic head
+        extractor = ASTFeatureExtractor.from_pretrained(args.model)
+        model = ASTForAudioClassification.from_pretrained(args.model).to(device).eval()
+        names = [model.config.id2label[i] for i in range(len(model.config.id2label))]
+    else:
+        extractor = ASTFeatureExtractor.from_pretrained(CHECKPOINT)
+        model = ASTForAudioClassification.from_pretrained(CHECKPOINT).to(device).eval()
+        head = joblib.load(HERE / "head.joblib")
+        names = list(head.classes_)
     fall3s.load()
-    seen_spikes, last_alert = [], {}
+    seen_spikes, last_alert, last_end = [], {}, 0.0
+    thr = args.threshold if args.threshold is not None else (0.4 if args.model else 0.6)
     sim = isinstance(link, FileSim)
     while True:
         started = time.time()
@@ -98,6 +119,10 @@ def run(link, args):
             time.sleep(1)
             continue
         end_t, x = got
+        if end_t == last_end:  # nothing new from the Pi yet
+            time.sleep(0.3)
+            continue
+        last_end = end_t
         if link.now() - end_t > 6:
             log.warning("Pi audio is stale (%.0f s old): is a sender connected?", link.now() - end_t)
             time.sleep(2)
@@ -109,10 +134,12 @@ def run(link, args):
         if np.abs(window).max() > 0.01:  # skip silence
             feats = extractor(window, sampling_rate=SR, return_tensors="pt")["input_values"].to(device)
             with torch.no_grad():
-                pooled = model.audio_spectrogram_transformer(feats).pooler_output.cpu().numpy()
-            probs = head.predict_proba(pooled)[0]
-            label, p = head.classes_[probs.argmax()], float(probs.max())
-            if label in AST_ALERTS and ongoing and p >= args.threshold and end_t - last_alert.get(label, 0) > args.cooldown:
+                if args.model:
+                    probs = torch.softmax(model(feats).logits.float(), -1)[0].cpu().numpy()
+                else:
+                    probs = head.predict_proba(model.audio_spectrogram_transformer(feats).pooler_output.cpu().numpy())[0]
+            label, p = names[int(probs.argmax())], float(probs.max())
+            if label in AST_ALERTS and ongoing and p >= thr and end_t - last_alert.get(label, 0) > args.cooldown:
                 last_alert[label] = end_t
                 link.append(event_row(end_t, peak, label, p, "DISTRESS_SOUND"))
                 log.info("%s %.2f -> DISTRESS_SOUND", label, p)
@@ -136,14 +163,16 @@ def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--pi", default="travis@100.127.214.108")
-    ap.add_argument("--threshold", type=float, default=0.6, help="min AST probability for distress/glass/siren")
+    ap.add_argument("--forced", action="store_true", help="the ssh key's forced command is cloud_gate.sh (cloud server)")
+    ap.add_argument("--model", help="directory of a fine-tuned AST (finetune.py output) instead of the frozen model + head")
+    ap.add_argument("--threshold", type=float, help="min AST probability for distress/glass/siren (default 0.6 frozen, 0.4 for --model: its probabilities are flatter)")
     ap.add_argument("--fall-threshold", type=float, default=0.8, help="min fall3s probability for a fall")
     ap.add_argument("--cooldown", type=float, default=10.0, help="seconds between repeat alerts of one class")
     ap.add_argument("--hop", type=float, default=1.0)
     ap.add_argument("--wav", help="offline test: replay this 16 kHz wav as the Pi's rolling audio")
     ap.add_argument("--out", default="events_test.csv", help="offline test: where to write events")
     args = ap.parse_args()
-    run(FileSim(args.wav, args.out) if args.wav else PiLink(args.pi), args)
+    run(FileSim(args.wav, args.out) if args.wav else PiLink(args.pi, args.forced), args)
 
 
 if __name__ == "__main__":
