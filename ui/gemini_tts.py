@@ -38,6 +38,46 @@ STYLES = {
 }
 
 
+class DailyQuotaExceeded(Exception):
+    """The free tier's requests-per-day cap is used up; retrying is pointless."""
+
+    def __init__(self, retry_after_s: float):
+        super().__init__(f"daily quota used up, resets in {retry_after_s / 3600:.1f} h")
+        self.retry_after_s = retry_after_s
+
+
+def _quota_marker(cache_dir):
+    return cache_dir / ".quota_until"
+
+
+def quota_wait_s(cache_dir) -> float:
+    """Seconds until generation is worth trying again (0 = go ahead)."""
+    try:
+        return max(0.0, float(_quota_marker(cache_dir).read_text()) - time.time())
+    except (OSError, ValueError):
+        return 0.0
+
+
+def _daily_quota_error(exc) -> DailyQuotaExceeded | None:
+    """A 429 that is the per-day cap (not the per-minute limit), else None."""
+    if not isinstance(exc, urllib.error.HTTPError) or exc.code != 429:
+        return None
+    try:
+        body = exc.read().decode("utf-8", "replace")
+    except OSError:
+        return None
+    if "PerDay" not in body:
+        return None
+    retry = 6 * 3600.0
+    try:
+        for detail in json.loads(body)["error"]["details"]:
+            if detail.get("@type", "").endswith("RetryInfo"):
+                retry = float(str(detail["retryDelay"]).rstrip("s"))
+    except (ValueError, KeyError, TypeError):
+        pass
+    return DailyQuotaExceeded(retry)
+
+
 def cache_path(cache_dir, key: str):
     return cache_dir / f"{key}.wav"
 
@@ -81,12 +121,24 @@ def generate(api_key: str, model: str, voice: str, text: str,
         audio = base64.b64decode(b64)
     except (urllib.error.URLError, KeyError, IndexError, ValueError,
             json.JSONDecodeError) as exc:
+        quota = _daily_quota_error(exc)
+        if quota is not None:
+            raise quota from exc
         log.warning("gemini tts %r failed: %s", text[:32], exc)
         return False
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_bytes(audio)
     log.info("gemini tts ok: %s", out_path.name)
     return True
+
+
+# what a person hears most often goes first when only a few requests a day are allowed
+_FIRST = ("checkin_say", "checkin_reminder_say", "checkin", "checkin_reminder", "alert",
+          "alert_reminder", "reprompt", "calibrating", "calibrated")
+
+
+def _priority(keys: list) -> list:
+    return sorted(keys, key=lambda k: (_FIRST.index(k) if k in _FIRST else len(_FIRST), k))
 
 
 def pregenerate(settings: dict, cache_dir, api_key: str,
@@ -101,9 +153,15 @@ def pregenerate(settings: dict, cache_dir, api_key: str,
         if on_progress:
             on_progress("no key")
         return
-    attempts = 8                       # 429s are common on the free tier: keep going
+    wait = quota_wait_s(cache_dir)
+    if wait > 0 and missing(cache_dir, voice):
+        log.info("gemini tts: daily quota used up, next try in %.1f h", wait / 3600)
+        if on_progress:
+            on_progress("quota")
+        return
+    attempts = 8                       # per-minute 429s clear quickly: keep going
     for attempt in range(attempts):
-        todo = missing(cache_dir, voice)
+        todo = missing(cache_dir, voice, keys=_priority(missing(cache_dir, voice)))
         if not todo:
             if on_progress:
                 on_progress("done")
@@ -112,8 +170,19 @@ def pregenerate(settings: dict, cache_dir, api_key: str,
             if stop is not None and stop.is_set():
                 return
             out = cache_path(cache_dir, f"{voice}_{key}")
-            ok = generate(api_key, model, voice, PHRASES[key],
-                          STYLES.get(key, "clear and neutral"), out)
+            try:
+                ok = generate(api_key, model, voice, PHRASES[key],
+                              STYLES.get(key, "clear and neutral"), out)
+            except DailyQuotaExceeded as quota:
+                log.warning("gemini tts: %s; stopping until then (%d phrases still use the "
+                            "fallback voice)", quota, len(missing(cache_dir, voice)))
+                try:
+                    _quota_marker(cache_dir).write_text(str(time.time() + quota.retry_after_s))
+                except OSError:
+                    pass
+                if on_progress:
+                    on_progress("quota")
+                return
             if on_progress:
                 on_progress(key, ok)
             if stop is not None and stop.is_set():
