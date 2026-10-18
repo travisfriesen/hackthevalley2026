@@ -294,6 +294,9 @@ class CheckIn(Screen):
         tk.Label(txt, text="seconds", bg=BG, fg=DIM,
                  font=("Helvetica", 12)).pack()
 
+        self.listen = tk.Label(self, text="", bg=BG, fg=DIM,
+                               font=("Helvetica", 12))
+        self.listen.pack(side="bottom")
         btns = tk.Frame(self, bg=BG)
         btns.pack(side="bottom", pady=16)
         big_button(btns, "I'M OK", GREEN, "white",
@@ -311,6 +314,9 @@ class CheckIn(Screen):
             text=f"{remaining:.0f}",
             fg=TEXT if remaining > 10 else RED)
         self.reason.config(text=d["state"].get("reason") or "")
+        self.listen.config(
+            text='or say "yes", "no" or "I need help"'
+            if app.speech.available else "")
         c = self.arc
         c.delete("all")
         frac = max(0.0, min(1.0, remaining / max(1.0, self.total)))

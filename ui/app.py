@@ -26,6 +26,7 @@ from csi_stream import CsiProcessor, LiveSource, ReplaySource, SimSource
 from escalation import Config, Escalation, State
 from feeds import AudioLevelFeed, SoundEventFeed, UltraFeed
 from gemini_tts import start_pregeneration
+from speech import SpeechListener
 from room_math import PresenceEstimator, ray_intersection, ray_point
 from room_sim import SimRoom
 from screens import Alert, CheckIn, Dashboard, HelpSent, Settings
@@ -60,6 +61,10 @@ class App:
         self.speaker = Speaker(settings_store.VOICE_CACHE,
                                muted=settings.get("voice_muted", False),
                                voice=settings.get("gemini_voice", "Kore"))
+        self._speech_results: deque = deque()
+        self.speech = SpeechListener(settings, self.speaker.busy,
+                                     lambda label, text:
+                                     self._speech_results.append((label, text)))
         self._tts_thread = None
         self._tts_stop = None
         self.regen_voice()
@@ -194,9 +199,12 @@ class App:
     # == transitions ==========================================================
 
     def _on_transition(self, now, frm, to, reason) -> None:
+        if to is not State.CHECK_IN:
+            self.speech.disarm()
         if to is State.CHECK_IN:
             self._checkin_entered = now
             self._checkin_repeat_k = 1
+            self.speech.arm()
             self.speaker.speak("checkin")
             self.show("checkin")
         elif to is State.ALERT:
@@ -265,6 +273,19 @@ class App:
     def checkin_ok(self) -> None:
         self._log("checkin_ok")
         self.escalation.im_ok(self.now)
+
+    def _drain_speech(self) -> None:
+        while self._speech_results:
+            label, text = self._speech_results.popleft()
+            if self.escalation.machine.state is not State.CHECK_IN:
+                continue
+            self._log("checkin_voice", heard=text, result=label)
+            self.activity.appendleft(
+                (time.strftime("%H:%M:%S"), f'heard "{text}"'))
+            if label == "ok":
+                self.escalation.im_ok(self.now)
+            else:
+                self.escalation.request_help(self.now)
 
     def checkin_help(self) -> None:
         self._log("checkin_need_help")
@@ -337,6 +358,7 @@ class App:
         wall = time.time()
 
         # 1. simulated room + sensors
+        self._drain_speech()
         self.sim.step(now)
         self.ultra.poll_sim()
 
@@ -498,4 +520,5 @@ class App:
         self.speaker.close()
         self.ultra.close()
         self.audio.close()
+        self.speech.close()
         self.events_feed.close()

@@ -46,6 +46,7 @@ class Speaker:
         self._stop = threading.Event()
         self._proc: subprocess.Popen | None = None
         self._proc_lock = threading.Lock()
+        self._active = False
         self._thread = threading.Thread(
             target=self._worker, name="voice", daemon=True)
         self._thread.start()
@@ -68,6 +69,10 @@ class Speaker:
         self._queue = type(self._queue)()       # drop queued phrases
         self.speak(key, text, priority=0)
 
+    def busy(self) -> bool:
+        """True while a phrase is playing or queued."""
+        return self._active or not self._queue.empty()
+
     def stop(self) -> None:
         """Silence now (state cancelled)."""
         with self._proc_lock:
@@ -86,7 +91,11 @@ class Speaker:
                 _prio, key, text = self._queue.get(timeout=0.25)
             except queue.Empty:
                 continue
-            self._say(key, text)
+            self._active = True
+            try:
+                self._say(key, text)
+            finally:
+                self._active = False
 
     def _say(self, key: str, text: str) -> None:
         wav = self._cached(key)

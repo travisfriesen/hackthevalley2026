@@ -8,3 +8,4 @@ ui/room.json
 ui/voice_cache/
 ui/voice_cache_test/
 ui_events.jsonl
+ui/speech_model/

@@ -34,6 +34,10 @@ DEFAULTS: dict = {
     "gemini_api_key": "",          # or env GEMINI_API_KEY
     "gemini_stagger_s": 15,        # pause between phrases (free-tier rate limits)
 
+    # Spoken replies to the check-in (needs `pip install vosk` and a model)
+    "speech_enabled": True,
+    "speech_model": "",            # default: ui/speech_model/
+
     # CSI motion scoring (see docs/LOG.md phase 0)
     "motion_window_s": 2.0,        # window length
     "motion_factor": 1.5,          # threshold = calibrated baseline * factor

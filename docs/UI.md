@@ -115,6 +115,21 @@ export GEMINI_API_KEY=...        # or put it in ui/settings.json
 Startup generation is staggered (~one phrase per 15 s) to respect free-tier
 rate limits; Settings -> Regenerate voice re-runs it.
 
+### Spoken replies
+
+During the check-in the person can answer out loud: "yes" / "I'm okay"
+cancels, "no" / "I need help" goes straight to the alert. `ui/speech.py`
+feeds the tail of the rolling mic WAV to an offline Vosk recognizer limited
+to those few words (about 2 s latency, since the WAV is republished every
+2 s); audio from while the prompt is playing is ignored. Setup:
+```
+pip install vosk
+# unpack vosk-model-small-en-us-0.15 (alphacephei.com/vosk/models) to ui/speech_model/
+```
+Without vosk or the model it stays off and the buttons work as before.
+Only the check-in listens; the red alert still needs the button, so a stray
+word can't cancel a real alarm.
+
 ## Files
 
 | File | Purpose |
