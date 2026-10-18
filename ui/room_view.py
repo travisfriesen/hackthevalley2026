@@ -21,16 +21,8 @@ from __future__ import annotations
 
 import math
 import tkinter as tk
+from theme import AMBER, BG, BLUE, BLUE_NEW, BLUE_OLD, DIM, GREEN, GRID_B, HOT, HOT_OLD, MARKER, MUTED_DOT, PANEL, ROOM_FILL, TEXT
 
-BG = "#0d1421"
-PANEL = "#131c2b"
-TEXT = "#e8eef7"
-DIM = "#7d8ea3"
-GREEN = "#2ea360"
-RED = "#cf4a4a"
-AMBER = "#d9a013"
-HOT = "#ff8a4a"
-BLUE = "#5aa2ff"
 EVIDENCE_S = 25.0          # how long a hit point stays on the map
 EVIDENCE_STEP = 0.5        # sampling cadence for evidence points
 
@@ -92,7 +84,7 @@ class RoomCanvas(tk.Frame):
             return
         c.delete("dyn")
         pts = [self._px(x, y) for x, y in self.room["outline"]]
-        c.create_polygon(*pts, fill="#101a2b", outline=TEXT, width=2,
+        c.create_polygon(*pts, fill=ROOM_FILL, outline=TEXT, width=2,
                          tags=("static",))
 
         # 0.5 m grid clipped to the room bbox
@@ -100,11 +92,11 @@ class RoomCanvas(tk.Frame):
         ys = [p[1] for p in self.room["outline"]]
         for gx in self._frange(min(xs), max(xs), 0.5):
             a, b = self._px(gx, min(ys)), self._px(gx, max(ys))
-            c.create_line(a[0], a[1], b[0], b[1], fill="#1b2a44",
+            c.create_line(a[0], a[1], b[0], b[1], fill=GRID_B,
                           tags=("static",))
         for gy in self._frange(min(ys), max(ys), 0.5):
             a, b = self._px(min(xs), gy), self._px(max(xs), gy)
-            c.create_line(a[0], a[1], b[0], b[1], fill="#1b2a44",
+            c.create_line(a[0], a[1], b[0], b[1], fill=GRID_B,
                           tags=("static",))
 
         door = self.room.get("door")
@@ -136,7 +128,7 @@ class RoomCanvas(tk.Frame):
                 sx + dx * 9, sy + dy * 9,
                 sx - dy * 4, sy + dx * 4,
                 sx + dy * 4, sy - dx * 4,
-                fill="#e8eef7", outline="", tags=("static",))
+                fill=MARKER, outline="", tags=("static",))
             c.create_text(sx - dx * 12, sy - dy * 12, text=s.get("label", f"us{i+1}"),
                           fill=TEXT, font=("Helvetica", 7, "bold"),
                           tags=("static",))
@@ -195,7 +187,7 @@ class RoomCanvas(tk.Frame):
                               fill=DIM, font=("Helvetica", 7), tags=("dyn",))
                 continue
             hx, hy = self._px(s["x"] + dx * d, s["y"] + dy * d)
-            color = HOT if dev else "#9aa8bb"
+            color = HOT if dev else MUTED_DOT
             c.create_line(sx, sy, hx, hy, fill=color, width=2, tags=("dyn",))
             c.create_oval(hx - 3, hy - 3, hx + 3, hy + 3,
                           fill=color, outline="", tags=("dyn",))
@@ -212,9 +204,9 @@ class RoomCanvas(tk.Frame):
                 px, py = self._px(x, y)
                 age = (now - t) / EVIDENCE_S
                 if was_dev:
-                    fill = HOT if age < 0.5 else "#7a3f2a"
+                    fill = HOT if age < 0.5 else HOT_OLD
                 else:
-                    fill = "#3c5e94" if age < 0.4 else "#26374f"
+                    fill = BLUE_NEW if age < 0.4 else BLUE_OLD
                 c.create_oval(px - 2, py - 2, px + 2, py + 2,
                               fill=fill, outline="", tags=("dyn",))
 
@@ -234,11 +226,11 @@ class RoomCanvas(tk.Frame):
         if truth and truth.get("inside"):
             px, py = self._px(truth["x"], truth["y"])
             r = 0.22 * self.scale
-            c.create_oval(px - r, py - r, px + r, py + r, outline="#ff8a4a",
+            c.create_oval(px - r, py - r, px + r, py + r, outline=HOT,
                           dash=(4, 3), width=2, tags=("dyn",))
             c.create_text(px, py + r + 8,
                           text="lying" if truth.get("lying") else "SIM",
-                          fill="#ff8a4a", font=("Helvetica", 8),
+                          fill=HOT, font=("Helvetica", 8),
                           tags=("dyn",))
 
         # CSI sightline + badges

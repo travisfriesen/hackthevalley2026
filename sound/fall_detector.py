@@ -18,6 +18,9 @@ import numpy as np
 
 AUDIO_PATH = Path("rolling_audio.wav")
 EVENT_LOG = Path("fall_events.csv")
+# Every candidate also saves its audio here, named by event time, so missed
+# or false alarms can be relabelled and trained on later.
+CLIP_DIR = Path(os.environ.get("KAZE_CLIPS_DIR", Path.home() / "captures" / "clips"))
 
 SAMPLE_RATE = 16_000          # rate YAMNet expects
 POLL_SECONDS = 1.0
@@ -215,6 +218,20 @@ def append_event(row: dict) -> None:
         writer.writerow(row)
 
 
+def save_clip(raw: np.ndarray, sr: int, event_time: float) -> None:
+    """Write the analysed tail as a 16-bit mono WAV. Never raises."""
+    try:
+        CLIP_DIR.mkdir(parents=True, exist_ok=True)
+        pcm = (np.clip(raw, -1.0, 1.0) * 32767).astype("<i2")
+        with wave.open(str(CLIP_DIR / f"acoustic_{event_time:.2f}.wav"), "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(sr)
+            w.writeframes(pcm.tobytes())
+    except OSError as exc:
+        log.warning("Could not save clip: %s", exc)
+
+
 def poll_once(classify, labels, last_reported: float, state: dict) -> float:
     """Analyse the newest audio once. Returns the updated last_reported."""
     if not AUDIO_PATH.exists():
@@ -280,6 +297,7 @@ def poll_once(classify, labels, last_reported: float, state: dict) -> float:
             )
             break
 
+        save_clip(raw, sr, event_time)
         log.warning(
             "ACOUSTIC CANDIDATE at %.2f | "
             "rise=%.1fdB crest=%.1f peak=%.3f | %s",

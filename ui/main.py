@@ -1,7 +1,9 @@
-"""KAZE touchscreen UI entry point.
+"""DownLink touchscreen UI entry point.
+
+Simulated or replayed data is used only when asked for on the command line.
 
 Development (this Mac, windowed, all sensors simulated):
-    python3 ui/main.py
+    python3 ui/main.py --csi sim --us sim
 
 Replay the recorded fall takes through the real pipeline:
     python3 ui/main.py --csi replay --replay data/session1/fall_20261017_000105.pcap
@@ -60,6 +62,11 @@ def main() -> None:
 
     settings = settings_store.load(Path(args.settings)
                                    if args.settings else settings_store.SETTINGS_PATH)
+    # simulated/replayed data only on request: a settings file cannot turn it on
+    if settings.get("csi_mode") != "live":
+        settings["csi_mode"] = "live"
+    if settings.get("ultra_mode") != "gpio":
+        settings["ultra_mode"] = "gpio"
     if args.csi:
         settings["csi_mode"] = args.csi
     if args.us:
@@ -72,10 +79,14 @@ def main() -> None:
         settings["voice_muted"] = True
 
     root = tk.Tk()
-    root.title("KAZE Sentry")
+    root.title("DownLink")
     if args.fullscreen:
-        root.attributes("-fullscreen", True)
         root.config(cursor="none")
+        root.geometry(f"{root.winfo_screenwidth()}x{root.winfo_screenheight()}+0+0")
+        # the window manager (labwc via Xwayland) ignores the hint until the window is mapped
+        root.update()
+        root.attributes("-fullscreen", True)
+        root.after(300, lambda: root.attributes("-fullscreen", True))
     else:
         root.geometry(args.geometry)
 

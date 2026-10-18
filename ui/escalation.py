@@ -1,4 +1,4 @@
-"""Escalation state machine: the "help" core of the KAZE UI.
+"""Escalation state machine: the "help" core of the DownLink UI.
 
 Pure Python (no Tk), with time injected by the caller, so the transitions can
 be unit-tested. The App feeds it events (presence, motion, sound candidates,

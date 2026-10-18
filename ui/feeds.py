@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import logging
+import os
 import threading
 import time
 import wave
@@ -33,6 +34,10 @@ CSV_CANDIDATES = [
 ]
 
 
+# Where scripts/pi/collect.sh, label.py and the ultrasonic archive all write.
+CONTINUOUS_DIR = str(Path.home() / "captures" / "continuous")
+
+
 def _first_existing(candidates, override=None):
     if override:
         p = Path(override)
@@ -51,12 +56,14 @@ class UltraFeed:
     def __init__(self, settings: dict, sim=None):
         self.settings = settings
         self.sim = sim
-        self.mode = settings.get("ultra_mode", "sim")
+        self.mode = settings.get("ultra_mode", "gpio")
         self.latest: tuple[float, list] | None = None
         self.samples: deque = deque(maxlen=2400)     # ~4 min at 10 Hz
         self._stop = threading.Event()
         self._thread = None
         self.error: str | None = None
+        self._log_path: Path | None = None
+        self._log_file = None
 
         if self.mode == "gpio":
             self._start_gpio()
@@ -65,8 +72,7 @@ class UltraFeed:
         try:
             from gpiozero import DistanceSensor
         except Exception as exc:                     # noqa: BLE001
-            self.mode = "sim"
-            self.error = f"gpiozero unavailable ({exc}); using sim"
+            self.error = f"gpiozero unavailable ({exc}); no ultrasonic data"
             log.warning(self.error)
             return
         self._sensors = [
@@ -94,7 +100,35 @@ class UltraFeed:
                     d = max_d
                 readings.append(d)
             self.record(t, readings)
+            self._log_row(t, readings)
             self._stop.wait(0.1)
+
+    def _log_row(self, t: float, readings: list) -> None:
+        """Append to the continuous ultrasonic archive (one CSV per day).
+
+        The UI owns the GPIO pins, so it is the only process that can log
+        them while it runs. Off with `ultra_log_dir: ""` in settings.
+        """
+        log_dir = self.settings.get("ultra_log_dir", CONTINUOUS_DIR)
+        if not log_dir:
+            return
+        try:
+            path = Path(log_dir).expanduser() / time.strftime("us_%Y%m%d.csv", time.localtime(t))
+            if path != self._log_path:
+                if self._log_file:
+                    self._log_file.close()
+                path.parent.mkdir(parents=True, exist_ok=True)
+                new = not path.exists()
+                self._log_file = open(path, "a", encoding="utf-8")
+                self._log_path = path
+                if new:
+                    self._log_file.write("epoch_s," + ",".join(
+                        f"d{i + 1}_m" for i in range(len(readings))) + "\n")
+            self._log_file.write(f"{t:.3f}," + ",".join(f"{d:.3f}" for d in readings) + "\n")
+            self._log_file.flush()
+        except OSError as exc:
+            log.warning("ultrasonic archive write failed: %s", exc)
+            self.settings["ultra_log_dir"] = ""     # stop retrying every 100 ms
 
     def record(self, t: float, readings: list) -> None:
         """Called from the sim (by the App tick) or the gpio thread."""
@@ -112,6 +146,8 @@ class UltraFeed:
 
     def close(self) -> None:
         self._stop.set()
+        if self._log_file:
+            self._log_file.close()
 
 
 class AudioLevelFeed:

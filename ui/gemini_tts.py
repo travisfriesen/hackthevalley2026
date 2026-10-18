@@ -34,7 +34,6 @@ STYLES = {
     "alert": "firm and urgent",
     "alert_reminder": "firm and urgent",
     "helpsent": "reassuring and steady",
-    "allclear": "warm and friendly",
     "calibrated": "warm and friendly",
 }
 

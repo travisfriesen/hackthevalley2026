@@ -8,19 +8,12 @@ their own expensive redraws internally.
 from __future__ import annotations
 
 import tkinter as tk
+from pathlib import Path
 
-BG = "#0d1421"
-PANEL = "#131c2b"
-PANEL2 = "#18233a"
-TEXT = "#e8eef7"
-DIM = "#7d8ea3"
-GREEN = "#2ea360"
-GREEN_D = "#1f6b40"
-RED = "#cf4a4a"
-RED_D = "#8f2430"
-AMBER = "#d9a013"
-BLUE = "#5aa2ff"
-HOT = "#ff8a4a"
+from theme import AMBER, BG, BLUE, DIM, GREEN, HOT, ON_RED_1, ON_RED_2, PANEL, PANEL2, RED, RED_D, TEXT, TRACK
+
+ASSETS = Path(__file__).resolve().parent / "assets"
+
 
 BIG = ("Helvetica", 15, "bold")
 MED = ("Helvetica", 11)
@@ -66,6 +59,10 @@ class Dashboard(Screen):
         tk.Button(top, text="\u2699", bg=PANEL, fg=TEXT, bd=0,
                   font=("Helvetica", 18), cursor="hand2",
                   command=app.show_settings).pack(side="left", padx=(8, 6))
+        self._logo = tk.PhotoImage(file=str(ASSETS / "logo_icon.png"))
+        tk.Label(top, image=self._logo, bg=PANEL).pack(side="left", padx=(0, 2))
+        tk.Label(top, text="DownLink", bg=PANEL, fg=TEXT,
+                 font=("Helvetica", 14, "bold")).pack(side="left", padx=(0, 10))
         self.pill_presence = Pill(top, 11)
         self.pill_presence.pack(side="left", padx=3)
         self.pill_mic = Pill(top, 8)
@@ -129,7 +126,14 @@ class Dashboard(Screen):
                                 app.manual_help, size=16)
         self.help.pack(fill="x", side="bottom", ipady=10)
 
+    # Redraw at 5 Hz while the logic still ticks at 10 Hz: on the Pi (Tk -> Xwayland)
+    # the redraw rate drives CPU use and the lag, and bars/maps look fine at 5 Hz.
+    DRAW_INTERVAL = 0.2
+
     def refresh(self, app) -> None:
+        if app.now - getattr(self, "_last_draw", -1.0) < self.DRAW_INTERVAL:
+            return
+        self._last_draw = app.now
         d = app.d
         self.clock.config(text=d["clock"])
         self.pill_presence.set(
@@ -191,7 +195,7 @@ class Dashboard(Screen):
             c.create_text(tx + 3, 22, anchor="nw", fill=AMBER, font=SMALL,
                           text="threshold")
         x = 8 + min(1.0, score / peak) * (w - 20)
-        c.create_rectangle(8, 34, w - 12, 48, fill="#1d2942", outline="")
+        c.create_rectangle(8, 34, w - 12, 48, fill=TRACK, outline="")
         c.create_rectangle(8, 34, x, 48,
                            fill=GREEN if snap.get("moving") else BLUE,
                            outline="")
@@ -227,7 +231,7 @@ class Dashboard(Screen):
                 c.create_line(bx, y - 1, bx, y + 14, fill=AMBER)
             x = 70 + min(1.0, r / max_d) * (w - 92)
             dev = i in d["deviating"]
-            c.create_rectangle(70, y, w - 14, y + 13, fill="#1d2942",
+            c.create_rectangle(70, y, w - 14, y + 13, fill=TRACK,
                                outline="")
             c.create_rectangle(70, y, 70 + max(2.0, x - 70), y + 13,
                                fill=HOT if dev else BLUE, outline="")
@@ -240,7 +244,7 @@ class Dashboard(Screen):
         db = d["noise_dbfs"]
         c.create_text(8, 8, anchor="nw", fill=TEXT, font=SMALL,
                       text="ROOM NOISE")
-        c.create_rectangle(8, 26, w - 14, 42, fill="#1d2942", outline="")
+        c.create_rectangle(8, 26, w - 14, 42, fill=TRACK, outline="")
         if db is None:
             c.create_text(w - 8, 8, anchor="ne", fill=DIM, font=SMALL,
                           text="recorder not running")
@@ -315,7 +319,7 @@ class CheckIn(Screen):
         c.delete("all")
         frac = max(0.0, min(1.0, remaining / max(1.0, self.total)))
         color = GREEN if frac > 0.5 else (AMBER if frac > 0.25 else RED)
-        c.create_oval(10, 10, 160, 160, outline="#223049", width=16)
+        c.create_oval(10, 10, 160, 160, outline=TRACK, width=16)
         if frac > 0.005:
             c.create_arc(10, 10, 160, 160, start=90, extent=360 * frac,
                          style="arc", outline=color, width=16)
@@ -329,12 +333,12 @@ class Alert(Screen):
         tk.Label(self, text="EMERGENCY ALERT", bg=RED, fg="white",
                  font=("Helvetica", 34, "bold")).pack(pady=(40, 2))
         tk.Label(self, text="Tap CANCEL if you do not need help",
-                 bg=RED, fg="#ffe3e3",
+                 bg=RED, fg=ON_RED_1,
                  font=("Helvetica", 15)).pack(pady=2)
         self.seconds = tk.Label(self, text="", bg=RED, fg="white",
                                 font=("Helvetica", 72, "bold"))
         self.seconds.pack(pady=(6, 2))
-        self.reason = tk.Label(self, text="", bg=RED, fg="#ffd9d9",
+        self.reason = tk.Label(self, text="", bg=RED, fg=ON_RED_2,
                                font=("Helvetica", 10), wraplength=700)
         self.reason.pack(pady=(2, 6))
         big_button(self, "I'M OK  \u2014  CANCEL ALERT", "white", RED_D,
@@ -411,7 +415,7 @@ class HelpSent(Screen):
                 c.create_oval(24, y - 10, 44, y + 10, fill=AMBER,
                               outline="")
             else:
-                c.create_oval(24, y - 10, 44, y + 10, fill="#243350",
+                c.create_oval(24, y - 10, 44, y + 10, fill=TRACK,
                               outline="")
             c.create_text(56, y, anchor="w", fill=TEXT, font=MED, text=text)
         if done >= len(self.STAGES):
