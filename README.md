@@ -47,6 +47,10 @@ scripts/pi/csi_on.sh                             # CSI mode, channel 11, Pico MA
 scripts/pi/start_audio.sh                        # audio receiver + phone mic bridge (https://<pi>:8443)
 scripts/pi/run_ui.sh --csi live --us gpio        # fall_detector.py + the fullscreen UI
 ```
+Over ssh, use `scripts/pi/restart_ui.sh` instead: it sets `DISPLAY=:0` (the Pi touchscreen), detaches so you can log out, and logs to `~/ui_run.log`. Stop with `scripts/pi/stop_ui.sh`. Running `run_ui.sh` directly over ssh needs `DISPLAY=:0 scripts/pi/run_ui.sh --csi live --us gpio` (otherwise Tk fails with "no $DISPLAY") and stays attached to the terminal.
+
+If the wifi driver reload fails with `SIOCSIFFLAGS: Operation not possible due to RF-kill`, wlan0 is rfkill-blocked: run `sudo rfkill unblock wifi && sudo nmcli radio wifi on`, then retry. If `rfkill list` shows a hard block, set the wifi country (`sudo raspi-config`, Localisation, WLAN Country, or `sudo iw reg set CA`). The "device is not active" error just before it is harmless.
+
 The Pico follows whatever channel its hotspot uses. If that is not 11, run `install_nexmon_csi.sh activate` and `csi_start.sh <channel>/20 <pico-mac>` instead of `csi_on.sh`. The UI never falls back to simulated data on its own.
 
 **GPU box (AST detector):**
