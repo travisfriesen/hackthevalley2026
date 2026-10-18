@@ -193,7 +193,7 @@ def test_presence_changes_do_not_repaint_the_dashboard():
         app._on_transition(1.0, State.STILL, State.AWAY, "ultrasonic: person left")
         assert shown == []                       # no flashing on a presence flap
         app._on_transition(2.0, State.CHECK_IN, State.STILL, "person confirmed OK")
-        assert shown == ["dashboard"]            # leaving a help screen still returns
+        assert shown == ["home"]                 # leaving a help screen returns to the home screen
     finally:
         app.close()
         root.destroy()

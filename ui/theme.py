@@ -26,3 +26,8 @@ BLUE_OLD = "#c4d7f0"
 ON_RED_1 = "#ffffff"       # text on a red alert background
 ON_RED_2 = "#ffe9e9"
 BG_RGB = (0xf3, 0xf5, 0xf9)  # waterfall pixel buffer background (same as BG)
+
+FONT = "Encode Sans Expanded"
+
+import fonts
+fonts.register()          # before any widget asks for FONT

@@ -17,7 +17,7 @@ import tkinter as tk
 
 import settings_store
 from room_math import simplify, snap_to_polygon
-from theme import AMBER, BG, BLUE, DIM, GREEN, GRID_A, GRID_B, MARKER, PANEL, ROOM_FILL, TEXT
+from theme import FONT, AMBER, BG, BLUE, DIM, GREEN, GRID_A, GRID_B, MARKER, PANEL, ROOM_FILL, TEXT
 
 
 STEPS = [
@@ -38,7 +38,7 @@ class RoomSetup(tk.Frame):
         self.pxm = 70.0
 
         self.step_label = tk.Label(self, text=STEPS[0], bg=BG, fg=TEXT,
-                                   font=("Helvetica", 12, "bold"))
+                                   font=(FONT, 12, "bold"))
         self.step_label.pack(fill="x", pady=(6, 2))
 
         self.canvas = tk.Canvas(self, bg=BG, highlightthickness=0)
@@ -49,22 +49,22 @@ class RoomSetup(tk.Frame):
         bar = tk.Frame(self, bg=PANEL)
         bar.pack(fill="x", padx=8, pady=6)
         tk.Button(bar, text="  -  ", command=lambda: self._zoom(-10),
-                  font=("Helvetica", 11)).pack(side="left")
+                  font=(FONT, 11)).pack(side="left")
         tk.Button(bar, text="  +  ", command=lambda: self._zoom(10),
-                  font=("Helvetica", 11)).pack(side="left")
+                  font=(FONT, 11)).pack(side="left")
         tk.Label(bar, text="grid 0.5 m", bg=PANEL, fg=DIM,
-                 font=("Helvetica", 9)).pack(side="left", padx=8)
+                 font=(FONT, 9)).pack(side="left", padx=8)
         self.hint = tk.Label(bar, text="", bg=PANEL, fg=AMBER,
-                             font=("Helvetica", 9))
+                             font=(FONT, 9))
         self.hint.pack(side="left", padx=8)
         tk.Button(bar, text="Clear", command=self._clear,
-                  font=("Helvetica", 11)).pack(side="right", padx=4)
+                  font=(FONT, 11)).pack(side="right", padx=4)
         self.next_btn = tk.Button(bar, text="Done", command=self._next,
-                                  font=("Helvetica", 11, "bold"),
+                                  font=(FONT, 11, "bold"),
                                   state="disabled")
         self.next_btn.pack(side="right", padx=4)
         tk.Button(bar, text="Skip (default room)", command=self._skip,
-                  font=("Helvetica", 10)).pack(side="right", padx=4)
+                  font=(FONT, 10)).pack(side="right", padx=4)
 
         self.reset()
 
@@ -224,7 +224,7 @@ class RoomSetup(tk.Frame):
             if gx and gx % 2 == 0:
                 c.create_text(gx * self.pxm + 3, 4, anchor="nw",
                               text=f"{gx // 2} m", fill=DIM,
-                              font=("Helvetica", 8))
+                              font=(FONT, 8))
             gx += 1
         gy = 0
         while gy * self.pxm < h:
@@ -247,11 +247,11 @@ class RoomSetup(tk.Frame):
                               fill=BLUE, outline="")
             c.create_text(w / 2, h - 14, fill=DIM,
                           text=f"{len(self.trace)} points traced",
-                          font=("Helvetica", 9))
+                          font=(FONT, 9))
         if self.door:
             dx, dy = P(*self.door)
             c.create_text(dx, dy, text="\u25bc", fill=AMBER,
-                          font=("Helvetica", 12, "bold"))
+                          font=(FONT, 12, "bold"))
         for s in self.sensors:
             sx, sy = P(s["x"], s["y"])
             head = math.radians(s.get("heading_deg", 0))
@@ -262,7 +262,7 @@ class RoomSetup(tk.Frame):
                              fill=MARKER, outline="")
             c.create_text(sx - dx * 12, sy - dy * 12,
                           text=s.get("label", "?"), fill=TEXT,
-                          font=("Helvetica", 8, "bold"))
+                          font=(FONT, 8, "bold"))
         if self.aim_from and self.step == 3 and self.sensors:
             sx, sy = P(*self.aim_from)
             c.create_line(sx, sy, c.winfo_pointerx() - c.winfo_rootx(),
@@ -275,4 +275,4 @@ class RoomSetup(tk.Frame):
                 c.create_oval(px - 5, py - 5, px + 5, py + 5, fill=color,
                               outline="")
                 c.create_text(px, py + 11, text=label, fill=color,
-                              font=("Helvetica", 8))
+                              font=(FONT, 8))
