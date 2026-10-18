@@ -11,14 +11,8 @@ from __future__ import annotations
 import tkinter as tk
 
 import numpy as np
+from theme import BG_RGB, AMBER, BG, BLUE, DIM, GREEN, PANEL, TEXT
 
-BG = "#0a0f18"
-PANEL = "#131c2b"
-TEXT = "#e8eef7"
-DIM = "#7d8ea3"
-GREEN = "#2ea360"
-RED = "#cf4a4a"
-AMBER = "#d9a013"
 
 # 32-step viridis-ish ramp, interpolated from 5 anchors (no matplotlib dep)
 _ANCHORS = [
@@ -82,7 +76,7 @@ class Waterfall(tk.Frame):
         if w < 20 or h < 20:
             return
         self._buf = np.zeros((h, w, 3), np.uint8)
-        self._buf[:] = [0x0a, 0x0f, 0x18]  # BG
+        self._buf[:] = BG_RGB
         if self._img is None:
             self._img = tk.PhotoImage(width=w, height=h)
             self.heat.create_image(0, 0, image=self._img, anchor="nw")
@@ -142,7 +136,7 @@ class Waterfall(tk.Frame):
                     x, y = xy(t, s)
                     pts.extend((x, y))
             self.strip.create_line(
-                *pts, fill="#6fb3ff" if moving else GREEN,
+                *pts, fill=BLUE if moving else GREEN,
                 width=2, tags=("ms",), smooth=True)
 
         self.strip.create_text(

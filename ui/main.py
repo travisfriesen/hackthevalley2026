@@ -1,4 +1,4 @@
-"""KAZE touchscreen UI entry point.
+"""DownLink touchscreen UI entry point.
 
 Simulated or replayed data is used only when asked for on the command line.
 
@@ -79,7 +79,7 @@ def main() -> None:
         settings["voice_muted"] = True
 
     root = tk.Tk()
-    root.title("KAZE Sentry")
+    root.title("DownLink")
     if args.fullscreen:
         root.config(cursor="none")
         root.geometry(f"{root.winfo_screenwidth()}x{root.winfo_screenheight()}+0+0")

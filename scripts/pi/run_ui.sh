@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# KAZE touchscreen UI - full launcher for the Raspberry Pi 4B.
+# DownLink touchscreen UI - full launcher for the Raspberry Pi 4B.
 #
 # usage: scripts/pi/run_ui.sh [ui/main.py args]
 #        scripts/pi/run_ui.sh --csi live            # nexmon CSI must be on

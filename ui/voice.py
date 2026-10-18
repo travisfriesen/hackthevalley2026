@@ -21,7 +21,7 @@ log = logging.getLogger("voice")
 
 # key -> (text, urgency)  urgency shapes the Gemini `style` hint
 PHRASES: dict[str, str] = {
-    "ready": "Sentry is ready.",
+    "ready": "DownLink is ready.",
     "checkin": "Are you okay? If you can hear me, tap the green button.",
     "checkin_reminder": "Are you okay? Tap the green button.",
     "im_ok": "Okay, glad you're alright.",

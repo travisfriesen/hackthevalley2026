@@ -28,16 +28,16 @@ log = logging.getLogger("phone_mic")
 
 PAGE = r"""<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KAZE phone mic</title>
+<title>DownLink phone mic</title>
 <style>
-  body { font-family: system-ui, sans-serif; background: #0a0f18; color: #e8eef7; margin: 0; padding: 24px; }
+  body { font-family: system-ui, sans-serif; background: #f3f5f9; color: #0b0d17; margin: 0; padding: 24px; }
   button { font-size: 1.4rem; padding: 18px 28px; border: 0; border-radius: 12px; background: #2ea360; color: #fff; width: 100%; }
-  button.stop { background: #cf4a4a; }
-  #bar { height: 14px; background: #1d2942; border-radius: 7px; margin: 22px 0 10px; overflow: hidden; }
+  button.stop { background: #d64545; }
+  #bar { height: 14px; background: #dbe2ed; border-radius: 7px; margin: 22px 0 10px; overflow: hidden; }
   #lvl { height: 100%; width: 0; background: #2ea360; }
-  #msg { color: #7d8ea3; min-height: 3em; }
+  #msg { color: #5d6878; min-height: 3em; }
 </style>
-<h2>KAZE phone microphone</h2>
+<h2>DownLink phone microphone</h2>
 <button id="go">Start microphone</button>
 <div id="bar"><div id="lvl"></div></div>
 <div id="msg">Keep this screen on and this tab in front.</div>
