@@ -85,11 +85,11 @@ enable presence (IN) and let the stillness clock run to escalate.
 ```
 sudo apt install python3-tk espeak-ng libportaudio2
 scripts/pi/enable_tcpdump.sh          # once, for live CSI without sudo
-scripts/pi/csi_on.sh 11/20 2c:cf:67:c5:c4:14   # once: nexmon CSI mode
-scripts/pi/run_ui.sh --csi live
+scripts/pi/csi_on.sh                  # once: nexmon CSI mode (channel 11)
+scripts/pi/run_ui.sh --csi live --us gpio
 ```
-If live CSI goes quiet for ~8 s the UI switches itself to replay and says so
-on the activity feed - the demo never dead-ends on radio flakiness.
+If live CSI goes quiet the activity feed says "live CSI silent". The UI never
+switches to simulated or replayed data on its own; use `--csi sim|replay` for that.
 
 ### Calibration (one tap before the demo)
 
