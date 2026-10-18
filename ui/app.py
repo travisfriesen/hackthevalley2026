@@ -99,8 +99,9 @@ class App:
         self.dashboard.room.set_room(self.room)
 
         # -- csi feed
-        self.csi_mode = settings.get("csi_mode", "sim")
+        self.csi_mode = settings.get("csi_mode", "live")
         self.csi_started_at = 0.0
+        self._csi_dead_noted = False
         self.csi_stop: threading.Event | None = None
         self.csi_thread = None
         self.takes = []
@@ -160,9 +161,7 @@ class App:
         elif mode == "replay":
             path = self.settings.get("replay_path")
             if not path or not Path(path).exists():
-                log.warning("replay pcap %r missing; using sim CSI", path)
-                source = SimSource(self.sim.activity)
-                self.csi_mode = "sim"
+                raise SystemExit(f"replay pcap {path!r} not found")
             else:
                 source = ReplaySource(path,
                                       speed=self.settings.get("replay_speed", 1.0),
@@ -217,7 +216,6 @@ class App:
             self.show("helpsent")
         elif to in (State.ACTIVE, State.STILL, State.AWAY):
             self.speaker.stop()
-            self.speaker.speak("allclear")
             self.show("dashboard")
 
     # == screen management =====================================================
@@ -373,16 +371,17 @@ class App:
             else:
                 self.motion_history.append((now, 0.0))
 
-        # live CSI dead -> fall back to replay (demo safety net)
+        # live CSI dead: say so once, never substitute simulated data
         if (self.csi_mode == "live" and not alive
+                and not self._csi_dead_noted
                 and now - self.csi_started_at
                 > self.settings.get("live_dead_s", 5.0) + 3.0):
-            log.warning("live CSI silent; falling back to replay")
+            self._csi_dead_noted = True
+            log.warning("live CSI silent; waiting for packets (no sim fallback)")
             self.activity.appendleft(
-                (time.strftime("%H:%M:%S"),
-                 "live CSI silent - switched to replay"))
-            self.csi_mode = "replay"
-            self._start_csi()
+                (time.strftime("%H:%M:%S"), "live CSI silent"))
+        elif alive:
+            self._csi_dead_noted = False
 
         # 3. presence from ultrasonic baselines
         readings = (self.ultra.latest[1]
@@ -399,10 +398,13 @@ class App:
             self.activity.appendleft((
                 time.strftime("%H:%M:%S", time.localtime(event["unix_time_approx"])),
                 f"SOUND {event.get('status', '')} "
-                f"rise {event.get('rise_db', '')}dB"))
+                + (f"rise {event['rise_db']}dB" if event.get("rise_db")
+                   else str(event.get("top_classes", ""))[:30])))
             if key in self._seen_sound_events:
                 continue
             self._seen_sound_events.add(key)
+            if event.get("rise_db"):
+                continue        # loud-sound heuristic row (speech, doors...): shown in the feed, never a fall on its own
             if now - self._last_sound_trigger > 8.0:
                 self._last_sound_trigger = now
                 label = (event.get("top_classes") or "loud sound")[:40]

@@ -9,3 +9,13 @@ ui/voice_cache/
 ui/voice_cache_test/
 ui_events.jsonl
 ui/speech_model/
+
+# sound detector: datasets, embeddings and training outputs
+sound/data/
+sound/ast/*.npz
+sound/ast/esc50_ast_model/
+sound/ast/checkpoints/
+sound/ast/*.log
+sound/ast/manifest.csv
+sound/ast/models/
+sound/ast/triggers/

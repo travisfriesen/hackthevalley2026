@@ -10,13 +10,9 @@ from __future__ import annotations
 
 import tkinter as tk
 
-BG = "#0a0f18"
-PANEL = "#131c2b"
-TEXT = "#e8eef7"
-DIM = "#7d8ea3"
-GREEN = "#2ea360"
-RED = "#cf4a4a"
-AMBER = "#d9a013"
+import numpy as np
+from theme import BG_RGB, AMBER, BG, BLUE, DIM, GREEN, PANEL, TEXT
+
 
 # 32-step viridis-ish ramp, interpolated from 5 anchors (no matplotlib dep)
 _ANCHORS = [
@@ -48,6 +44,8 @@ class Waterfall(tk.Frame):
         self.hist_cols = hist_cols
         self.rows = rows
         self.colors = _color_list()
+        self.palette = np.array(
+            [[int(c[i:i + 2], 16) for i in (1, 3, 5)] for c in self.colors], np.uint8)
 
         head = tk.Frame(self, bg=PANEL)
         head.pack(fill="x", padx=6, pady=(4, 0))
@@ -64,7 +62,8 @@ class Waterfall(tk.Frame):
         self.strip = tk.Canvas(self, bg=BG, highlightthickness=0, height=56)
         self.strip.pack(fill="x", padx=6, pady=(0, 5))
 
-        self._columns = []            # [x_px, [item ids]]
+        self._img = None              # one PhotoImage; a pixel buffer is shifted left per column
+        self._buf = None
         self._last_col_t = 0.0
         self._last_strip_t = 0.0
         self._strip_xlim = 55.0       # seconds shown on the strip
@@ -73,45 +72,34 @@ class Waterfall(tk.Frame):
     # -- heatmap -------------------------------------------------------------
 
     def _resized(self) -> None:
-        w = self.heat.winfo_width()
-        if w < 20:
-            return
-        self.hist_cols = max(24, w // self.col_w)
-        for _x, ids in self._columns:
-            for item in ids:
-                self.heat.delete(item)
-        self._columns = []
-
-    def _new_column(self, column, now) -> None:
-        if column is None:
-            return
-        w = self.heat.winfo_width()
-        h = self.heat.winfo_height()
+        w, h = self.heat.winfo_width(), self.heat.winfo_height()
         if w < 20 or h < 20:
             return
-        # scroll left, drop what fell off the edge
-        for entry in self._columns:
-            entry[0] -= self.col_w
-        while self._columns and self._columns[0][0] < -self.col_w:
-            _x, ids = self._columns.pop(0)
-            for item in ids:
-                self.heat.delete(item)
+        self._buf = np.zeros((h, w, 3), np.uint8)
+        self._buf[:] = BG_RGB
+        if self._img is None:
+            self._img = tk.PhotoImage(width=w, height=h)
+            self.heat.create_image(0, 0, image=self._img, anchor="nw")
+        self._show()
 
+    def _show(self) -> None:
+        h, w, _ = self._buf.shape
+        self._img.configure(data=b"P6 %d %d 255\n" % (w, h) + self._buf.tobytes())
+
+    def _new_column(self, column, now) -> None:
+        if column is None or self._buf is None:
+            return
+        h = self._buf.shape[0]
         rows = min(self.rows, column.size)
         vals = column
         if column.size % rows:
             vals = column[:rows * (column.size // rows + 1)]
         vals = vals[: (vals.size // rows) * rows].reshape(rows, -1).mean(1)
-        rowh = h / rows
-        x = w - self.col_w
-        ids = []
-        for r in range(rows):
-            v = min(1.0, max(0.0, float(vals[r]) / 1.6))
-            color = self.colors[min(31, int(v * 31.999))]
-            ids.append(self.heat.create_rectangle(
-                x, r * rowh, x + self.col_w, (r + 1) * rowh + 0.6,
-                fill=color, outline=""))
-        self._columns.append([x, ids])
+        shade = (np.clip(vals / 1.6, 0.0, 1.0) * 31.999).astype(int)
+        col = self.palette[shade][np.arange(h) * rows // h]  # stretch rows to canvas height
+        self._buf[:, :-self.col_w] = self._buf[:, self.col_w:]  # scroll left
+        self._buf[:, -self.col_w:] = col[:, None, :]
+        self._show()
 
     # -- motion strip ----------------------------------------------------------
 
@@ -148,7 +136,7 @@ class Waterfall(tk.Frame):
                     x, y = xy(t, s)
                     pts.extend((x, y))
             self.strip.create_line(
-                *pts, fill="#6fb3ff" if moving else GREEN,
+                *pts, fill=BLUE if moving else GREEN,
                 width=2, tags=("ms",), smooth=True)
 
         self.strip.create_text(

@@ -17,14 +17,8 @@ import tkinter as tk
 
 import settings_store
 from room_math import simplify, snap_to_polygon
+from theme import AMBER, BG, BLUE, DIM, GREEN, GRID_A, GRID_B, MARKER, PANEL, ROOM_FILL, TEXT
 
-BG = "#0d1421"
-PANEL = "#131c2b"
-TEXT = "#e8eef7"
-DIM = "#7d8ea3"
-GREEN = "#2ea360"
-AMBER = "#d9a013"
-TRACE_COLOR = "#6fb3ff"
 
 STEPS = [
     "TRACE: drag a finger around the room walls, then tap Done",
@@ -47,7 +41,7 @@ class RoomSetup(tk.Frame):
                                    font=("Helvetica", 12, "bold"))
         self.step_label.pack(fill="x", pady=(6, 2))
 
-        self.canvas = tk.Canvas(self, bg="#0a0f18", highlightthickness=0)
+        self.canvas = tk.Canvas(self, bg=BG, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True, padx=8, pady=2)
         self.canvas.bind("<Button-1>", self._press)
         self.canvas.bind("<B1-Motion>", self._drag)
@@ -226,7 +220,7 @@ class RoomSetup(tk.Frame):
         gx = 0
         while gx * self.pxm < w:
             c.create_line(gx * self.pxm, 0, gx * self.pxm, h,
-                          fill="#141d30" if gx % 2 else "#1b2a44")
+                          fill=GRID_A if gx % 2 else GRID_B)
             if gx and gx % 2 == 0:
                 c.create_text(gx * self.pxm + 3, 4, anchor="nw",
                               text=f"{gx // 2} m", fill=DIM,
@@ -235,7 +229,7 @@ class RoomSetup(tk.Frame):
         gy = 0
         while gy * self.pxm < h:
             c.create_line(0, gy * self.pxm, w, gy * self.pxm,
-                          fill="#141d30" if gy % 2 else "#1b2a44")
+                          fill=GRID_A if gy % 2 else GRID_B)
             gy += 1
 
         def P(x, y):
@@ -243,14 +237,14 @@ class RoomSetup(tk.Frame):
 
         if self.outline:
             pts = [P(x, y) for x, y in self.outline]
-            c.create_polygon(*pts, fill="#101a2b", outline=TEXT, width=2)
+            c.create_polygon(*pts, fill=ROOM_FILL, outline=TEXT, width=2)
         elif self.trace:
             pts = [P(x, y) for x, y in self.trace]
-            c.create_line(*pts, fill=TRACE_COLOR, width=3)
+            c.create_line(*pts, fill=BLUE, width=3)
             for x, y in self.trace[::4]:
                 c.create_oval(P(x, y)[0] - 2, P(x, y)[1] - 2,
                               P(x, y)[0] + 2, P(x, y)[1] + 2,
-                              fill=TRACE_COLOR, outline="")
+                              fill=BLUE, outline="")
             c.create_text(w / 2, h - 14, fill=DIM,
                           text=f"{len(self.trace)} points traced",
                           font=("Helvetica", 9))
@@ -265,7 +259,7 @@ class RoomSetup(tk.Frame):
             c.create_polygon(sx + dx * 9, sy + dy * 9,
                              sx - dy * 4, sy + dx * 4,
                              sx + dy * 4, sy - dx * 4,
-                             fill="#e8eef7", outline="")
+                             fill=MARKER, outline="")
             c.create_text(sx - dx * 12, sy - dy * 12,
                           text=s.get("label", "?"), fill=TEXT,
                           font=("Helvetica", 8, "bold"))
@@ -274,7 +268,7 @@ class RoomSetup(tk.Frame):
             c.create_line(sx, sy, c.winfo_pointerx() - c.winfo_rootx(),
                           c.winfo_pointery() - c.winfo_rooty(),
                           fill=AMBER, dash=(4, 3))
-        for pos, label, color in ((self.pico, "Pico", "#5aa2ff"),
+        for pos, label, color in ((self.pico, "Pico", BLUE),
                                   (self.pi, "Pi", GREEN)):
             if pos:
                 px, py = P(*pos)

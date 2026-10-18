@@ -68,7 +68,7 @@ evidence map automatically.
 
 **This Mac, windowed, all sensors simulated:**
 ```
-python3 ui/main.py
+python3 ui/main.py --csi sim --us sim
 ```
 Demo strip buttons appear: WALK / FALL / IN / OUT drive a simulated person
 through the same detection pipeline the real sensors use.
