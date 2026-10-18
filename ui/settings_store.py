@@ -18,6 +18,7 @@ SETTINGS_PATH = UI_DIR / "settings.json"
 EXAMPLE_PATH = UI_DIR / "settings.example.json"
 ROOM_PATH = UI_DIR / "room.json"
 VOICE_CACHE = UI_DIR / "voice_cache"
+CALIBRATION_PATH = UI_DIR / "calibration.json"
 
 DEFAULTS: dict = {
     # Escalation timing (seconds)
@@ -136,3 +137,20 @@ def load_room(settings: dict, path: Path = ROOM_PATH) -> dict:
 def save_room(room: dict, path: Path = ROOM_PATH) -> None:
     with open(path, "w", encoding="utf-8") as f:
         json.dump(room, f, indent=2)
+
+
+def load_calibration(path: Path = CALIBRATION_PATH) -> dict:
+    """The last empty-room calibration, so a UI restart does not lose it."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def save_calibration(data: dict, path: Path = CALIBRATION_PATH) -> None:
+    tmp = path.with_suffix(".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, path)

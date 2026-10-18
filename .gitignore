@@ -5,6 +5,7 @@ __pycache__/
 # touchscreen UI: per-installation state, never commit
 ui/settings.json
 ui/room.json
+ui/calibration.json
 ui/voice_cache/
 ui/voice_cache_test/
 ui_events.jsonl

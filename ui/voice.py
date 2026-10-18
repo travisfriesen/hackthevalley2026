@@ -30,7 +30,14 @@ PHRASES: dict[str, str] = {
     "alert": "Emergency alert. Tap the white button if you do not need help.",
     "alert_reminder": "Emergency alert. Tap the white button if you do not need help.",
     "helpsent": "Help is being contacted. Do not move if you are hurt.",
+    "count_5": "Five.",
+    "count_4": "Four.",
+    "count_3": "Three.",
+    "count_2": "Two.",
+    "count_1": "One.",
+    "calibrating": "Calibrating room.",
     "calibrated": "Calibration complete.",
+    "calibration_failed": "Calibration failed. No sensor data.",
 }
 
 URGENT = {"alert", "alert_reminder", "helpsent"}

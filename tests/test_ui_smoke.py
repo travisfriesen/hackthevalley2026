@@ -197,3 +197,43 @@ def test_presence_changes_do_not_repaint_the_dashboard():
     finally:
         app.close()
         root.destroy()
+
+
+def test_calibration_counts_down_aloud_then_calibrates():
+    from app import App
+    root = tk.Tk()
+    app = App(root, _settings(), fullscreen=False)
+    try:
+        spoken = []
+        app.speaker.speak = lambda key, *a, **k: spoken.append(key)
+        app.speaker.interrupt_and_speak = lambda key, *a, **k: spoken.append(key)
+        app.start_calibration()
+        assert app._screen == "dashboard"
+        app.tick()
+        assert "Leave the room" in app.d["cal_text"]
+        assert spoken == ["count_5"]
+        assert not app.processor.calibrating(app.now)
+
+        for n in (4, 3, 2, 1):                               # one number per second
+            app._cal_start_at = time.monotonic() + n - 0.5
+            app.tick()
+            app.tick()                                       # not repeated within a second
+        assert spoken == ["count_5", "count_4", "count_3", "count_2", "count_1"]
+
+        app._cal_start_at = time.monotonic() - 0.1           # countdown over
+        app.tick()
+        assert app.processor.calibrating(app.now)
+        assert app.d["cal_text"].startswith("Calibrating room")
+        assert spoken[-1] == "calibrating"
+
+        app.start_calibration()                              # ignored while running
+        assert app._cal_start_at is None
+
+        app.processor.cal_until = app.now - 0.1              # window over
+        app.tick()
+        app.tick()
+        assert spoken[-1] in ("calibrated", "calibration_failed")   # never a crash
+        assert app.d["cal_text"] is None
+    finally:
+        app.close()
+        root.destroy()

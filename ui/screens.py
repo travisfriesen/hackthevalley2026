@@ -74,6 +74,9 @@ class Dashboard(Screen):
         self.clock = tk.Label(top, text="", bg=PANEL, fg=TEXT,
                               font=("Helvetica", 15, "bold"))
         self.clock.pack(side="right", padx=10)
+        # calibration countdown, big enough to read from across the room
+        self.cal_banner = tk.Label(self, bg=AMBER, fg=BG, justify="center",
+                                   font=("Helvetica", 44, "bold"))
 
         # -- left column: room map + CSI waterfall
         # the room canvas's master is the root window so it can be repacked
@@ -136,6 +139,13 @@ class Dashboard(Screen):
         self._last_draw = app.now
         d = app.d
         self.clock.config(text=d["clock"])
+        if d.get("cal_text"):
+            self.cal_banner.config(text=d["cal_text"])
+            self.cal_banner.place(relx=0.5, rely=0.5, anchor="center",
+                                  relwidth=0.8, relheight=0.5)
+            self.cal_banner.lift()
+        else:
+            self.cal_banner.place_forget()
         self.pill_presence.set(
             "PERSON IN ROOM" if d["presence"] else "ROOM EMPTY",
             GREEN if d["presence"] else DIM)

@@ -190,6 +190,13 @@ class PresenceEstimator:
     def unfreeze(self) -> None:
         self._frozen = []
 
+    def export_frozen(self) -> list | None:
+        """Per-sensor frozen baselines (meters, None where unknown), or None."""
+        return list(self._frozen) if self._frozen else None
+
+    def import_frozen(self, frozen: list) -> None:
+        self._frozen = [None if b is None else float(b) for b in frozen]
+
     def baseline(self, idx) -> float | None:
         if self._frozen and idx < len(self._frozen):
             if self._frozen[idx] is not None:

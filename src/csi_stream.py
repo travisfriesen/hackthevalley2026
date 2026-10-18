@@ -371,6 +371,18 @@ class CsiProcessor:
             self.cal_scores = []
             self.cal_shapes = []
 
+    def export_calibration(self) -> dict | None:
+        """What a restart must remember: the empty-room motion baseline. (The
+        shape reference depends on a mask learned from live data, so it is
+        not restored.)"""
+        with self.lock:
+            return None if self.baseline is None else {"baseline": self.baseline}
+
+    def import_calibration(self, data: dict) -> None:
+        with self.lock:
+            self.baseline = float(data["baseline"])
+            self.threshold = self.baseline * self.factor
+
     def finish_calibration(self) -> None:
         """Compute baseline/threshold from whatever was collected. The App
         calls this once the calibration window has elapsed."""
