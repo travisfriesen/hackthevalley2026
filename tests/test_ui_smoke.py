@@ -178,3 +178,22 @@ def test_local_yes_decides_alone_without_the_worker():
     finally:
         app.close()
         root.destroy()
+
+
+def test_presence_changes_do_not_repaint_the_dashboard():
+    from app import App
+    from escalation import State
+    root = tk.Tk()
+    app = App(root, _settings(), fullscreen=False)
+    try:
+        shown = []
+        real_show = app.show
+        app.show = lambda name: (shown.append(name), real_show(name))
+        app._on_transition(0.0, State.AWAY, State.STILL, "ultrasonic: person entered")
+        app._on_transition(1.0, State.STILL, State.AWAY, "ultrasonic: person left")
+        assert shown == []                       # no flashing on a presence flap
+        app._on_transition(2.0, State.CHECK_IN, State.STILL, "person confirmed OK")
+        assert shown == ["dashboard"]            # leaving a help screen still returns
+    finally:
+        app.close()
+        root.destroy()

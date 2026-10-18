@@ -517,26 +517,19 @@ class Settings(Screen):
         self.var_mac = tk.StringVar(value=self.draft["csi_mac"])
         row("Pico MAC", tk.Entry(right, textvariable=self.var_mac, width=20))
 
-        btns = tk.Frame(right, bg=BG)
-        btns.pack(fill="x", pady=6)
-        tk.Button(btns, text="Calibrate empty room", bg=PANEL2, fg=TEXT,
-                  bd=0, font=SMALL, cursor="hand2",
-                  command=app.start_calibration).pack(
-            side="left", padx=2, ipadx=4, ipady=4)
-        tk.Button(btns, text="Room setup", bg=PANEL2, fg=TEXT, bd=0,
-                  font=SMALL, cursor="hand2",
-                  command=app.run_room_setup).pack(
-            side="left", padx=2, ipadx=4, ipady=4)
-        tk.Button(btns, text="Regenerate voice", bg=PANEL2, fg=TEXT, bd=0,
-                  font=SMALL, cursor="hand2",
-                  command=app.regen_voice).pack(
-            side="left", padx=2, ipadx=4, ipady=4)
-
         btns2 = tk.Frame(self, bg=BG)
         btns2.pack(fill="x", pady=6)
         tk.Button(btns2, text="TEST ALERT", bg=RED_D, fg="white", bd=0,
                   font=("Helvetica", 11, "bold"), cursor="hand2",
                   command=app.manual_help).pack(side="left", padx=8, ipady=6)
+        # in the bottom bar, not the crowded right column, where they were
+        # squeezed to nothing on the 7" screen
+        for text, command in (("Calibrate empty room", app.start_calibration),
+                              ("Room setup", app.run_room_setup),
+                              ("Regenerate voice", app.regen_voice)):
+            tk.Button(btns2, text=text, bg=PANEL2, fg=TEXT, bd=0, font=SMALL,
+                      cursor="hand2", command=command).pack(
+                side="left", padx=2, ipadx=4, ipady=6)
         tk.Button(btns2, text="Save & Back", bg=GREEN, fg="white", bd=0,
                   font=("Helvetica", 11, "bold"), cursor="hand2",
                   command=self._save).pack(side="right", padx=8, ipady=6)

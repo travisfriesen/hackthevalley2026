@@ -222,8 +222,11 @@ class App:
             self.speaker.interrupt_and_speak("helpsent")
             self.show("helpsent")
         elif to in (State.ACTIVE, State.STILL, State.AWAY):
-            self.speaker.stop()
-            self.show("dashboard")
+            # only when a help screen is being left: presence changes on the
+            # dashboard must not repaint it (the flashing) or cut off speech
+            if frm in (State.CHECK_IN, State.ALERT, State.HELP_SENT):
+                self.speaker.stop()
+                self.show("dashboard")
 
     # == screen management =====================================================
 
