@@ -136,6 +136,10 @@ def transcribe(model, audio: np.ndarray) -> str:
 def make_ask(args):
     """The function that reads a transcript, or None for keyword rules only."""
     if args.llm == "ollama":
+        try:        # the first call loads the model into the GPU (can take a minute)
+            ollama_ask(args.llm_model, args.ollama_host, timeout=180)("hello")
+        except Exception as exc:         # noqa: BLE001
+            log.warning("ollama warm-up failed (%s); answers fall back to rules until it is up", exc)
         return ollama_ask(args.llm_model, args.ollama_host)
     if args.llm == "claude":
         import anthropic
