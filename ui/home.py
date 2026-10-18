@@ -16,6 +16,7 @@ import random
 import threading
 import time
 import tkinter as tk
+import tkinter.font as tkfont
 from pathlib import Path
 
 from theme import FONT
@@ -48,7 +49,7 @@ class Layout:
         self.logo_xy = (px(22), px(16))
         self.time_xy = (px(30), h - px(85))
         self.date_xy = (px(34), h - px(25))
-        self.time_pt, self.date_pt = px(84), px(24)
+        self.time_pt, self.date_pt = px(56), px(22)
         self.help_pt, self.details_pt = px(26), px(16)
 
 
@@ -137,6 +138,13 @@ class Home(Screen):
         self._logo = _white_logo(lay.logo_h) if Image else None
         self._ready, self._next_at = None, 0.0     # re-render photos at the new size
 
+        # the clock must stop short of the help button, whatever the font renders as
+        time_pt = lay.time_pt
+        room = lay.help_box[0] - lay.time_xy[0] - lay.px(70)
+        while time_pt > 24 and tkfont.Font(
+                family=FONT, size=time_pt, weight="bold").measure("10:59 AM") > room:
+            time_pt -= 2
+
         c = self.canvas
         c.delete("all")
         self.bg_item = c.create_image(0, 0, anchor="nw")
@@ -144,7 +152,7 @@ class Home(Screen):
             c.create_image(*lay.logo_xy, anchor="nw", image=self._plain_logo)
         self.time_items = [
             c.create_text(lay.time_xy[0] + dx, lay.time_xy[1] + dy, anchor="sw",
-                          fill=fill, font=(FONT, lay.time_pt, "bold"))
+                          fill=fill, font=(FONT, time_pt, "bold"))
             for dx, dy, fill in ((2, 2, self.CLOCK_SHADOW), (0, 0, "white"))]
         self.date_items = [
             c.create_text(lay.date_xy[0] + dx, lay.date_xy[1] + dy, anchor="sw",
