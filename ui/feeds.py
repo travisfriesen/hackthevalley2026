@@ -220,6 +220,8 @@ class SoundEventFeed:
         self.interval = interval
         self.recent_events: deque = deque(maxlen=keep)
         self.pending: deque = deque()          # drained by the App
+        self.replies: deque = deque()          # spoken check-in answers
+        self.speech_alive_at = 0.0             # last worker heartbeat (local clock)
         self.path: Path | None = None
         self._offset = 0
         self._new_file = True
@@ -260,7 +262,7 @@ class SoundEventFeed:
             chunk = f.read()
         self._offset = size
         lines = chunk.splitlines()
-        if not chunk.endswith("\n"):
+        if lines and not chunk.endswith("\n"):
             self._offset -= len(lines[-1]) + 1
             lines = lines[:-1]
         first_sight = self._new_file
@@ -272,7 +274,12 @@ class SoundEventFeed:
             lines = lines[1:]
         for line in lines:
             row = self._parse(line)
-            if row:
+            if row and row["status"] == "SPEECH_ALIVE":
+                self.speech_alive_at = row["read_at"]
+            elif row and row["status"] == "SPEECH_REPLY":
+                if not first_sight:
+                    self.replies.append(row)
+            elif row:
                 self.recent_events.append(row)
                 if (row["status"] in ("REVIEW_CANDIDATE", "DISTRESS_SOUND")
                         and not first_sight):
@@ -289,6 +296,15 @@ class SoundEventFeed:
             return row
         except (StopIteration, ValueError):
             return None
+
+    def drain_replies(self):
+        out = []
+        while self.replies:
+            out.append(self.replies.popleft())
+        return out
+
+    def speech_server_alive(self, max_age=25.0) -> bool:
+        return time.time() - self.speech_alive_at <= max_age
 
     def drain(self):
         out = []

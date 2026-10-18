@@ -355,6 +355,12 @@ class CsiProcessor:
             return
         self.baseline = float(np.median(self.cal_scores))
         self.threshold = self.baseline * self.factor
+        # the usable-subcarrier mask can change size mid-calibration, so the
+        # shapes may differ in length: keep the most common length
+        lengths = [len(s) for s in self.cal_shapes]
+        if lengths:
+            keep = max(set(lengths), key=lengths.count)
+            self.cal_shapes = [s for s in self.cal_shapes if len(s) == keep]
         if self.cal_shapes:
             shapes = np.stack(self.cal_shapes)
             self.shape_base = shapes.mean(axis=0)
@@ -370,6 +376,18 @@ class CsiProcessor:
             self.cal_until = now + seconds
             self.cal_scores = []
             self.cal_shapes = []
+
+    def export_calibration(self) -> dict | None:
+        """What a restart must remember: the empty-room motion baseline. (The
+        shape reference depends on a mask learned from live data, so it is
+        not restored.)"""
+        with self.lock:
+            return None if self.baseline is None else {"baseline": self.baseline}
+
+    def import_calibration(self, data: dict) -> None:
+        with self.lock:
+            self.baseline = float(data["baseline"])
+            self.threshold = self.baseline * self.factor
 
     def finish_calibration(self) -> None:
         """Compute baseline/threshold from whatever was collected. The App
@@ -387,7 +405,8 @@ class CsiProcessor:
     def shape_distance(self, now: float) -> float | None:
         with self.lock:
             shape = self._shape_locked(now)
-            if shape is None or self.shape_base is None:
+            if (shape is None or self.shape_base is None
+                    or len(shape) != len(self.shape_base)):   # mask resized since
                 return None
             return float(np.linalg.norm(shape - self.shape_base))
 
@@ -412,7 +431,9 @@ class CsiProcessor:
             shape_changed = False
             if self.shape_base is not None:
                 shape = self._shape_locked(now)
-                if shape is not None:
+                # the usable-subcarrier mask can change size after calibrating:
+                # then the reference no longer matches, so skip rather than crash
+                if shape is not None and len(shape) == len(self.shape_base):
                     shape_dist = float(np.linalg.norm(shape - self.shape_base))
                     limit = 3.0 * (self.shape_scatter or 0.02) + 0.05
                     shape_changed = shape_dist > limit

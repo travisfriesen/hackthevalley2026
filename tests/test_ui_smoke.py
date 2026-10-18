@@ -104,3 +104,255 @@ def test_speaker_fallback_picks_a_command():
     if shutil.which("espeak-ng") or sys.platform == "darwin":
         assert cmd is not None
     s.close()
+
+
+def _check_in_app():
+    from app import App
+    root = tk.Tk()
+    root.geometry("800x480")
+    app = App(root, _settings(), fullscreen=False)
+    app.escalation.sound_candidate(app.now, "test bang")
+    return root, app
+
+
+def _remote(app, label, start_offset=1.0, text="heard"):
+    import json
+    now = time.time()
+    app.events_feed.replies.append({
+        "unix_time_approx": now + start_offset + 1.0,
+        "top_classes": json.dumps({"label": label, "reason": "why", "text": text,
+                                   "start": now + start_offset})})
+
+
+def test_spoken_replies_from_the_worker():
+    from escalation import State
+    for label, expected in (("ok", {State.ACTIVE, State.STILL, State.AWAY}),
+                            ("help", {State.ALERT}),
+                            ("unclear", {State.CHECK_IN})):
+        root, app = _check_in_app()
+        try:
+            assert app.escalation.machine.state is State.CHECK_IN
+            _remote(app, label)
+            app._drain_speech()
+            assert app.escalation.machine.state in expected, label
+        finally:
+            app.close()
+            root.destroy()
+
+
+def test_reply_that_started_before_the_question_ended_is_ignored():
+    from escalation import State
+    root, app = _check_in_app()
+    try:
+        _remote(app, "ok", start_offset=-5.0)
+        app._drain_speech()
+        assert app.escalation.machine.state is State.CHECK_IN
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_local_yes_waits_for_the_worker_but_local_help_does_not():
+    from escalation import State
+    root, app = _check_in_app()
+    try:
+        app.events_feed.speech_alive_at = time.time()       # worker is up
+        app._speech_results.append(("local", "ok", "yes"))
+        app._drain_speech()
+        assert app.escalation.machine.state is State.CHECK_IN
+        app._speech_results.append(("local", "help", "help"))
+        app._drain_speech()
+        assert app.escalation.machine.state is State.ALERT
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_local_yes_decides_alone_without_the_worker():
+    from escalation import State
+    root, app = _check_in_app()
+    try:
+        app._speech_results.append(("local", "ok", "yes"))
+        app._drain_speech()
+        assert app.escalation.machine.state is not State.CHECK_IN
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_presence_changes_do_not_repaint_the_dashboard():
+    from app import App
+    from escalation import State
+    root = tk.Tk()
+    app = App(root, _settings(), fullscreen=False)
+    try:
+        shown = []
+        real_show = app.show
+        app.show = lambda name: (shown.append(name), real_show(name))
+        app._on_transition(0.0, State.AWAY, State.STILL, "ultrasonic: person entered")
+        app._on_transition(1.0, State.STILL, State.AWAY, "ultrasonic: person left")
+        assert shown == []                       # no flashing on a presence flap
+        app._on_transition(2.0, State.CHECK_IN, State.STILL, "person confirmed OK")
+        assert shown == ["dashboard"]            # leaving a help screen still returns
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_calibration_counts_down_aloud_then_calibrates():
+    from app import App
+    root = tk.Tk()
+    app = App(root, _settings(), fullscreen=False)
+    try:
+        spoken = []
+        app.speaker.speak = lambda key, *a, **k: spoken.append(key)
+        app.speaker.interrupt_and_speak = lambda key, *a, **k: spoken.append(key)
+        app.start_calibration()
+        assert app._screen == "dashboard"
+        app.tick()
+        assert "Leave the room" in app.d["cal_text"]
+        assert spoken == ["count_5"]
+        assert not app.processor.calibrating(app.now)
+
+        for n in (4, 3, 2, 1):                               # one number per second
+            app._cal_start_at = time.monotonic() + n - 0.5
+            app.tick()
+            app.tick()                                       # not repeated within a second
+        assert spoken == ["count_5", "count_4", "count_3", "count_2", "count_1"]
+
+        app._cal_start_at = time.monotonic() - 0.1           # countdown over
+        app.tick()
+        assert app.processor.calibrating(app.now)
+        assert app.d["cal_text"].startswith("Calibrating room")
+        assert spoken[-1] == "calibrating"
+
+        app.start_calibration()                              # ignored while running
+        assert app._cal_start_at is None
+
+        app.processor.cal_until = app.now - 0.1              # window over
+        app.tick()
+        app.tick()
+        assert spoken[-1] in ("calibrated", "calibration_failed")   # never a crash
+        assert app.d["cal_text"] is None
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_a_failing_tick_does_not_stop_the_loop():
+    from app import App
+    root = tk.Tk()
+    app = App(root, _settings(), fullscreen=False)
+    try:
+        scheduled = []
+        app.root.after = lambda ms, fn=None, *a: scheduled.append(ms)
+        app.tick = lambda: 1 / 0
+        app._tick_loop()                       # must swallow the error ...
+        assert scheduled == [100]              # ... and keep the loop alive
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_calibration_banner_sits_above_the_map_and_hides():
+    from app import App
+    root = tk.Tk()
+    root.geometry("800x480")
+    app = App(root, _settings(), fullscreen=False)
+    try:
+        banner = app.dashboard.cal_banner
+        assert banner.master is root           # same level as the room map
+        app.dashboard.set_banner("Leave the room\nCalibrating in 3")
+        root.update()
+        assert banner.winfo_ismapped()
+        app.dashboard.set_banner(None)
+        root.update()
+        assert not banner.winfo_ismapped()
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_guided_training_runs_end_to_end(tmp_path):
+    import json
+    from app import App
+    from training import TAKES
+    settings = _settings()
+    settings["training_dir"] = str(tmp_path)
+    root = tk.Tk()
+    root.geometry("800x480")
+    app = App(root, settings, fullscreen=False)
+    try:
+        spoken = []
+        app.speaker.interrupt_and_speak = lambda key, *a, **k: spoken.append(key)
+        app.speaker.stop = lambda: None
+        app.training.takes = TAKES[:2]
+        app.training.position_s, app.training.count_s = 0.2, 2
+        app.training.record_s, app.training.rest_s = 0.6, 0.2
+
+        app.start_training()
+        assert app._screen == "training" and app.training.active
+        for _ in range(120):                       # ~ 8 s of the real tick loop
+            root.update()
+            time.sleep(0.07)
+            if not app.training.active:
+                break
+        assert not app.training.active
+        assert app._screen == "settings"
+
+        assert spoken[0] == "train_empty" and spoken[-1] == "train_complete"
+        assert spoken.count("train_recording") == 2 and spoken.count("train_done") == 2
+        assert "count_2" in spoken and "count_1" in spoken
+
+        session = next(tmp_path.iterdir())
+        labels = [json.loads(line) for line in (session / "labels.jsonl").read_text().splitlines()]
+        assert [row["label"] for row in labels] == ["empty", "walking"]
+        for row in labels:
+            csv = session / row["file"]
+            rows = csv.with_suffix(".us.csv").read_text().splitlines()
+            assert rows[0] == "epoch_s,d1_cm,d2_cm" and len(rows) > 3   # ultrasonic logged
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_training_holds_the_alerts_and_wont_start_during_a_check_in():
+    root, app = _check_in_app()
+    try:
+        app.start_training()
+        assert not app.training.active                      # a check-in is running
+        app.checkin_ok()
+        app.start_training()
+        assert app.training.active
+
+        fed = []
+        app.escalation.set_presence = lambda *a: fed.append("presence")
+        app.escalation.set_motion = lambda *a: fed.append("motion")
+        app.escalation.tick = lambda *a: fed.append("tick")
+        app.tick()
+        assert fed == []                                    # held while training
+
+        app.training.active = False
+        app.tick()
+        assert fed == ["presence", "motion", "tick"]        # and live again afterwards
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_check_in_tells_the_person_to_speak_only_when_something_listens():
+    root, app = _check_in_app()
+    try:
+        assert not app.voice_reply_ready()
+        app.events_feed.speech_alive_at = time.time()        # the GPU worker is up
+        assert app.voice_reply_ready()
+        app.checkin.refresh(app)
+        assert "say" in app.checkin.listen.cget("text")
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_check_in_prompt_asks_for_a_spoken_answer():
+    from voice import PHRASES
+    assert "Say yes" in PHRASES["checkin_say"] and "I need help" in PHRASES["checkin_say"]

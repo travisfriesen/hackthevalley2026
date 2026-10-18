@@ -115,6 +115,64 @@ export GEMINI_API_KEY=...        # or put it in ui/settings.json
 Startup generation is staggered (~one phrase per 15 s) to respect free-tier
 rate limits; Settings -> Regenerate voice re-runs it.
 
+### Spoken replies
+
+During the check-in the person can answer out loud: "yes" / "I'm okay"
+cancels, "no" / "I need help" goes straight to the alert. `ui/speech.py`
+feeds the tail of the rolling mic WAV to an offline Vosk recognizer limited
+to those few words (about 2 s latency, since the WAV is republished every
+2 s); audio from while the prompt is playing is ignored. Setup:
+```
+pip install vosk
+# unpack vosk-model-small-en-us-0.15 (alphacephei.com/vosk/models) to ui/speech_model/
+```
+Without vosk or the model it stays off and the buttons work as before.
+Only the check-in listens; the red alert still needs the button, so a stray
+word can't cancel a real alarm.
+
+### Understanding free-form answers (GPU server)
+
+Vosk only knows a few words. For "I'm fine, just my hip hurts" the GPU
+server runs `sound/speech/reply_worker.py`:
+
+```
+Pi rolling mic wav --ssh audio_tail--> server: VAD -> faster-whisper -> Ollama (local LLM)
+                                                  |
+UI reads SPEECH_REPLY rows  <--ssh append_event---+   (fall_events.csv)
+```
+
+Each utterance becomes one `SPEECH_REPLY` row (`ok` / `help` / `unclear`, the
+transcript and a short reason); a `SPEECH_ALIVE` heartbeat every 10 s tells
+the UI the server is up. Same ssh gate as the AST detector, nothing new
+opened on the Pi. A local Ollama model reads the transcript; if it can't be reached the
+worker falls back to keyword rules (`sound/speech/reply.py`), which err
+toward help.
+
+In the UI, while the server is alive the offline listener may only
+escalate, not cancel: the server's answer decides "ok", so a quick "yes"
+can't hide the "...but I can't get up" that follows. If the server is
+down the offline listener decides alone. `unclear` answers repeat the
+question without resetting the countdown. Replies that began while the
+question was still playing are ignored.
+
+On the Vultr box (A16 x2) it lives in `/root/speech` with its own
+`/root/venv-speech` (so it can't disturb the AST detector's torch venv),
+Whisper on GPU 0 and Ollama on GPU 1. It reaches the Pi as `ssh pi`, the
+forced-command `id_pi` key. Copy `sound/speech/{reply,segmenter,reply_worker}.py`
+there to update it. It runs as the `kaze-speech` systemd unit:
+`systemctl start kaze-speech` (or `enable --now` to survive reboots), and
+`journalctl -u kaze-speech -f` to watch what it hears. Start it only once the
+Pi runs a UI with this feature: the heartbeat rows it writes show up as
+sound events on older UIs.
+
+```
+pip install -r sound/speech/requirements.txt     # on the GPU server
+ollama pull qwen2.5:7b                           # a 3b model also judged correctly in tests
+cd sound/speech && python reply_worker.py --forced        # key forced to cloud_gate.sh
+python reply_worker.py --say "no I think I broke my hip"  # test the reading
+python reply_worker.py --wav answer.wav --whisper small.en --device cpu --llm none
+```
+
 ## Files
 
 | File | Purpose |

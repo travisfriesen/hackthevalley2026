@@ -18,6 +18,7 @@ SETTINGS_PATH = UI_DIR / "settings.json"
 EXAMPLE_PATH = UI_DIR / "settings.example.json"
 ROOM_PATH = UI_DIR / "room.json"
 VOICE_CACHE = UI_DIR / "voice_cache"
+CALIBRATION_PATH = UI_DIR / "calibration.json"
 
 DEFAULTS: dict = {
     # Escalation timing (seconds)
@@ -33,6 +34,15 @@ DEFAULTS: dict = {
     "gemini_model": "gemini-3.8-flash-lite-tts",
     "gemini_api_key": "",          # or env GEMINI_API_KEY
     "gemini_stagger_s": 15,        # pause between phrases (free-tier rate limits)
+
+    # Spoken replies to the check-in (needs `pip install vosk` and a model)
+    "speech_enabled": True,
+    "speech_model": "",            # default: ui/speech_model/
+
+    # Guided training (Settings -> Guided training)
+    "training_seconds": 30,        # length of each recorded take
+    "training_position_s": 10,     # time to get into position after the instruction
+    "training_dir": "",            # default ~/captures/training
 
     # CSI motion scoring (see docs/LOG.md phase 0)
     "motion_window_s": 2.0,        # window length
@@ -132,3 +142,20 @@ def load_room(settings: dict, path: Path = ROOM_PATH) -> dict:
 def save_room(room: dict, path: Path = ROOM_PATH) -> None:
     with open(path, "w", encoding="utf-8") as f:
         json.dump(room, f, indent=2)
+
+
+def load_calibration(path: Path = CALIBRATION_PATH) -> dict:
+    """The last empty-room calibration, so a UI restart does not lose it."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def save_calibration(data: dict, path: Path = CALIBRATION_PATH) -> None:
+    tmp = path.with_suffix(".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, path)

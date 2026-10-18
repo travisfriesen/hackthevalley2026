@@ -18,6 +18,8 @@ import subprocess
 import sys
 import threading
 
+from training import PHRASES as TRAIN_PHRASES
+
 log = logging.getLogger("voice")
 
 # key -> (text, urgency)  urgency shapes the Gemini `style` hint
@@ -25,12 +27,24 @@ PHRASES: dict[str, str] = {
     "ready": "DownLink is ready.",
     "checkin": "Are you okay? If you can hear me, tap the green button.",
     "checkin_reminder": "Are you okay? Tap the green button.",
+    "checkin_say": "Are you okay? Say yes, no, or I need help.",
+    "checkin_reminder_say": "Are you okay? Say yes, or no, or I need help.",
+    "reprompt": "Sorry, I didn't catch that. Are you okay?",
     "im_ok": "Okay, glad you're alright.",
     "alert": "Emergency alert. Tap the white button if you do not need help.",
     "alert_reminder": "Emergency alert. Tap the white button if you do not need help.",
     "helpsent": "Help is being contacted. Do not move if you are hurt.",
+    "count_5": "Five.",
+    "count_4": "Four.",
+    "count_3": "Three.",
+    "count_2": "Two.",
+    "count_1": "One.",
+    "calibrating": "Calibrating room.",
     "calibrated": "Calibration complete.",
+    "calibration_failed": "Calibration failed. No sensor data.",
 }
+
+PHRASES.update(TRAIN_PHRASES)
 
 URGENT = {"alert", "alert_reminder", "helpsent"}
 
@@ -46,6 +60,7 @@ class Speaker:
         self._stop = threading.Event()
         self._proc: subprocess.Popen | None = None
         self._proc_lock = threading.Lock()
+        self._active = False
         self._thread = threading.Thread(
             target=self._worker, name="voice", daemon=True)
         self._thread.start()
@@ -68,6 +83,10 @@ class Speaker:
         self._queue = type(self._queue)()       # drop queued phrases
         self.speak(key, text, priority=0)
 
+    def busy(self) -> bool:
+        """True while a phrase is playing or queued."""
+        return self._active or not self._queue.empty()
+
     def stop(self) -> None:
         """Silence now (state cancelled)."""
         with self._proc_lock:
@@ -86,7 +105,11 @@ class Speaker:
                 _prio, key, text = self._queue.get(timeout=0.25)
             except queue.Empty:
                 continue
-            self._say(key, text)
+            self._active = True
+            try:
+                self._say(key, text)
+            finally:
+                self._active = False
 
     def _say(self, key: str, text: str) -> None:
         wav = self._cached(key)

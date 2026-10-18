@@ -183,6 +183,8 @@ def run(link, args):
             benign = probs is not None and args.model and probs[names.index("not_distress")] > args.veto
             if benign:
                 log.info("  vetoed: AST says not_distress %.2f", probs[names.index("not_distress")])
+            elif probs is not None and args.model:       # the score of spikes that pass, for tuning the veto
+                log.info("  not vetoed: AST not_distress %.2f", probs[names.index("not_distress")])
             if pf >= args.fall_threshold and not benign:
                 link.append(event_row(t, float(np.abs(x[max(0, c - SR):c + SR]).max()), "fall", pf, "REVIEW_CANDIDATE"))
                 save_trigger(args.save_dir, x, t, "fall", pf)
