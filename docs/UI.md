@@ -89,6 +89,15 @@ scripts/pi/enable_tcpdump.sh          # once, for live CSI without sudo
 scripts/pi/csi_on.sh                  # once: nexmon CSI mode (channel 11)
 scripts/pi/run_ui.sh --csi live --us gpio
 ```
+Over ssh use `scripts/pi/restart_ui.sh`: it sets `DISPLAY=:0` (the Pi touchscreen),
+detaches so you can log out, and logs to `~/ui_run.log`; stop with
+`scripts/pi/stop_ui.sh`. Calling `run_ui.sh` directly over ssh needs
+`DISPLAY=:0 scripts/pi/run_ui.sh --csi live --us gpio` and stays attached.
+
+If the wifi driver reload fails with `Operation not possible due to RF-kill`, run
+`sudo rfkill unblock wifi && sudo nmcli radio wifi on` and retry. A hard block in
+`rfkill list` usually means the wifi country is unset (`sudo raspi-config`, WLAN Country).
+
 If live CSI goes quiet the activity feed says "live CSI silent". The UI never
 switches to simulated or replayed data on its own; use `--csi sim|replay` for that.
 
