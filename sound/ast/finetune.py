@@ -31,6 +31,9 @@ ap.add_argument("--accum", type=int, default=2, help="gradient accumulation step
 ap.add_argument("--lr", type=float, default=2e-5)
 ap.add_argument("--workers", type=int, default=8)
 ap.add_argument("--no-aug", action="store_true")
+ap.add_argument("--init", help="start from this fine-tuned model dir (e.g. out/run1/ast_ft) instead of the AudioSet checkpoint; use a small --lr")
+ap.add_argument("--room-weight", type=int, default=1,
+                help="repeat the in-room clips (source=room, see build_room_dataset.py) this many times in train")
 ap.add_argument("--ckpt", action="store_true", help="gradient checkpointing (less memory, slower)")
 ap.add_argument("--smoke", action="store_true")
 args = ap.parse_args()
@@ -43,6 +46,10 @@ df["y"] = df.label.map({c: i for i, c in enumerate(CLASSES)})
 if args.smoke:
     df = pd.concat([g.head(4) for _, g in df.groupby(["split", "label"])])
 train, val = df[df.split == "train"], df[df.split == "val"]
+if args.room_weight > 1:
+    room = train[train.source == "room"]
+    train = pd.concat([train] + [room] * (args.room_weight - 1), ignore_index=True)
+    print(f"in-room clips in train: {len(room)} x {args.room_weight}")
 noise_pool = train[train.label == "not_distress"].path.tolist()
 extractor = ASTFeatureExtractor.from_pretrained(CHECKPOINT)
 rng = np.random.default_rng()
@@ -75,7 +82,7 @@ def loader(frame, aug, shuffle):
 
 
 model = ASTForAudioClassification.from_pretrained(
-    CHECKPOINT, num_labels=len(CLASSES), id2label=dict(enumerate(CLASSES)),
+    args.init or CHECKPOINT, num_labels=len(CLASSES), id2label=dict(enumerate(CLASSES)),
     label2id={c: i for i, c in enumerate(CLASSES)}, ignore_mismatched_sizes=True).to(device)
 if args.ckpt:
     model.gradient_checkpointing_enable()
@@ -125,6 +132,11 @@ for epoch in range(args.epochs):
             break
     p = predict(val)
     f1 = f1_score(val.y, p, average="macro", zero_division=0)
+    room_val = df[df.split == "room_val"]
+    if len(room_val):               # pick the epoch by public val AND this room's held-out clips
+        pr = predict(room_val)
+        f1 = (f1 + f1_score(room_val.y, pr, average="macro", zero_division=0)) / 2
+        print(f"  room_val alerts {alert_metrics(room_val.y.values, pr)}", flush=True)
     print(f"epoch {epoch + 1}/{args.epochs}  loss {running / (i + 1):.3f}  val macro-F1 {f1:.3f}  "
           f"alerts {alert_metrics(val.y.values, p)}  [{time.time() - t0:.0f}s]", flush=True)
     if f1 > best:
@@ -134,7 +146,7 @@ for epoch in range(args.epochs):
 
 model = ASTForAudioClassification.from_pretrained(out / "ast_ft").to(device)
 results = {}
-for split in ("val", "test", "hf_test"):
+for split in ("val", "test", "hf_test", "room_val"):
     f = df[df.split == split]
     if len(f) == 0:
         continue
