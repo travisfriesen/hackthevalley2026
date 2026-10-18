@@ -4,7 +4,7 @@ Fall and distress detection for someone living alone, built for Hack the Valley 
 
 > **Research prototype, not a validated safety device.** The help call is simulated. Real human falls are untested: the fall classifiers were trained on dummy-fall data and ordinary household sounds.
 
-The thing that combines them is the **DownLink touchscreen UI** (`ui/`, see `docs/UI.md`): the 7" Pi display shows the room as the sensors see it - Wi-Fi CSI motion, ultrasonic depth, noise - and runs the escalation flow (still-person check-in -> alert -> simulated help call) that the KAZE challenge asks for. `scripts/pi/run_ui.sh` starts the whole stack on the Pi.
+![DownLink](ui/assets/logo_full.png)
 
 ## How it works
 
