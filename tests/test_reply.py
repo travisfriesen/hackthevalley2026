@@ -123,3 +123,15 @@ def test_segmenter_splits_two_answers_and_ignores_blips():
     seg = Segmenter()
     out = seg.feed(audio, 50.0)
     assert len(out) == 2                            # the 0.1 s blip is too short
+
+
+@pytest.mark.parametrize("text,echo", [
+    ("Are you okay? Say yes, no, or I need help.", True),
+    ("Okay, say yes or no. Yes. Or I need help.", True),
+    ("Are you okay? Tap the green button.", True),
+    ("like 1024 but... Okay, say yes, no, or I need help.", True),
+    ("No.", False), ("I need help", False), ("Yes, I'm fine", False),
+    ("my hip hurts", False),
+])
+def test_the_question_itself_is_not_an_answer(text, echo):
+    assert reply.looks_like_prompt(text) is echo

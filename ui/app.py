@@ -231,7 +231,7 @@ class App:
             self._checkin_repeat_k = 1
             self._checkin_wall = time.time()
             self.speech.arm()
-            self.speaker.speak("checkin")
+            self.speaker.speak("checkin_say" if self.voice_reply_ready() else "checkin")
             self.show("checkin")
         elif to is State.ALERT:
             self._last_alert_voice = now
@@ -303,6 +303,10 @@ class App:
         self._log("checkin_ok")
         self.escalation.im_ok(self.now)
 
+    def voice_reply_ready(self) -> bool:
+        """True when something is listening for a spoken answer."""
+        return self.speech.available or self.events_feed.speech_server_alive()
+
     def _drain_speech(self) -> None:
         """Act on spoken answers during a check-in.
 
@@ -320,10 +324,19 @@ class App:
         while self._speech_results:
             source, label, heard = self._speech_results.popleft()
             if self.escalation.machine.state is not State.CHECK_IN:
+                log.info("ignored %s reply %r: not in a check-in", source,
+                         getattr(heard, "text", heard))
                 continue
             if source == "remote":
                 # ignore the question itself and anything said before it
-                if heard.start < max(self._last_spoke + 0.3, self._checkin_wall):
+                if reply_mod.looks_like_prompt(heard.text):
+                    log.info("ignored reply %r: the question itself", heard.text)
+                    continue
+                # 1 s: a bluetooth speaker plays a moment after the UI is done
+                cutoff = max(self._last_spoke + 1.0, self._checkin_wall)
+                if heard.start < cutoff:
+                    log.info("ignored reply %r (%s): started %.1f s before the question ended",
+                             heard.text, label, cutoff - heard.start)
                     continue
                 text, why = heard.text, heard.reason
             else:
@@ -664,7 +677,8 @@ class App:
             due = self._checkin_entered + self._checkin_repeat_k * repeat
             if now >= due:
                 self._checkin_repeat_k += 1
-                self.speaker.speak("checkin_reminder")
+                self.speaker.speak("checkin_reminder_say"
+                                   if self.voice_reply_ready() else "checkin_reminder")
         elif value == "alert":
             if now - self._last_alert_voice >= 4.0:
                 self._last_alert_voice = now

@@ -405,7 +405,8 @@ class CsiProcessor:
     def shape_distance(self, now: float) -> float | None:
         with self.lock:
             shape = self._shape_locked(now)
-            if shape is None or self.shape_base is None:
+            if (shape is None or self.shape_base is None
+                    or len(shape) != len(self.shape_base)):   # mask resized since
                 return None
             return float(np.linalg.norm(shape - self.shape_base))
 
@@ -430,7 +431,9 @@ class CsiProcessor:
             shape_changed = False
             if self.shape_base is not None:
                 shape = self._shape_locked(now)
-                if shape is not None:
+                # the usable-subcarrier mask can change size after calibrating:
+                # then the reference no longer matches, so skip rather than crash
+                if shape is not None and len(shape) == len(self.shape_base):
                     shape_dist = float(np.linalg.norm(shape - self.shape_base))
                     limit = 3.0 * (self.shape_scatter or 0.02) + 0.05
                     shape_changed = shape_dist > limit

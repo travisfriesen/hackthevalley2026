@@ -55,3 +55,12 @@ def test_calibration_with_shapes_of_different_lengths_does_not_crash():
     p.finish_calibration()
     assert p.baseline == pytest.approx(0.2)
     assert len(p.shape_base) == 6
+
+
+def test_snapshot_survives_a_resized_subcarrier_mask():
+    import numpy as np
+    p = CsiProcessor(window_s=2.0, factor=1.5)
+    p.shape_base = np.ones(56)
+    p._shape_locked = lambda now, span=5.0: np.ones(57)     # mask grew after calibrating
+    assert p.snapshot(10.0)["shape_distance"] is None        # used to raise ValueError
+    assert p.shape_distance(10.0) is None

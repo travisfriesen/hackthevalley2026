@@ -66,6 +66,17 @@ def classify(text: str) -> str | None:
     return None
 
 
+# fragments of the spoken question; the mic hears the speaker, and the question
+# itself contains the answer words ("say yes, no, or I need help")
+_PROMPT_ECHO = ("are you okay", "are you ok", "say yes", "yes or no", "yes no or",
+                "or i need help", "tap the green")
+
+
+def looks_like_prompt(text: str) -> bool:
+    spoken = " ".join(_words(text))
+    return any(fragment in spoken for fragment in _PROMPT_ECHO)
+
+
 def rule_interpret(text: str) -> Reply:
     """Keyword reading of a free-form answer; errs toward help."""
     words = _words(text)

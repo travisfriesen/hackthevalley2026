@@ -337,7 +337,7 @@ class CheckIn(Screen):
         self.reason.config(text=d["state"].get("reason") or "")
         self.listen.config(
             text='or say "yes", "no" or "I need help"'
-            if app.speech.available else "")
+            if app.voice_reply_ready() else "")
         c = self.arc
         c.delete("all")
         frac = max(0.0, min(1.0, remaining / max(1.0, self.total)))

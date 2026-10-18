@@ -27,6 +27,8 @@ PHRASES: dict[str, str] = {
     "ready": "DownLink is ready.",
     "checkin": "Are you okay? If you can hear me, tap the green button.",
     "checkin_reminder": "Are you okay? Tap the green button.",
+    "checkin_say": "Are you okay? Say yes, no, or I need help.",
+    "checkin_reminder_say": "Are you okay? Say yes, or no, or I need help.",
     "reprompt": "Sorry, I didn't catch that. Are you okay?",
     "im_ok": "Okay, glad you're alright.",
     "alert": "Emergency alert. Tap the white button if you do not need help.",

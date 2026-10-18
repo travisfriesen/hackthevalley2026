@@ -338,3 +338,21 @@ def test_training_holds_the_alerts_and_wont_start_during_a_check_in():
     finally:
         app.close()
         root.destroy()
+
+
+def test_check_in_tells_the_person_to_speak_only_when_something_listens():
+    root, app = _check_in_app()
+    try:
+        assert not app.voice_reply_ready()
+        app.events_feed.speech_alive_at = time.time()        # the GPU worker is up
+        assert app.voice_reply_ready()
+        app.checkin.refresh(app)
+        assert "say" in app.checkin.listen.cget("text")
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_check_in_prompt_asks_for_a_spoken_answer():
+    from voice import PHRASES
+    assert "Say yes" in PHRASES["checkin_say"] and "I need help" in PHRASES["checkin_say"]
