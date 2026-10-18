@@ -4,7 +4,7 @@ Fall and distress detection for someone living alone, built for Hack the Valley 
 
 > **Research prototype, not a validated safety device.** The help call is simulated. Real human falls are untested: the fall classifiers were trained on dummy-fall data and ordinary household sounds.
 
-![DownLink](ui/assets/logo_full.png)
+![DownLink](ui/assets/downlink.png)
 
 ## How it works
 
