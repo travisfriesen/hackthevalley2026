@@ -36,6 +36,7 @@ grace prevents repeated false triggers.
 
 | Screen | What it shows |
 |---|---|
+| **Home** | default view: family photo slideshow (`my_family_album/`), time and date, white DownLink logo, big I NEED HELP, DETAILS button to the Dashboard |
 | **Dashboard** | live room map, CSI waterfall + motion line, ultrasonic depths, room noise, activity feed, big I NEED HELP |
 | **Check-in** | "ARE YOU OKAY?", why it fired, 30 s countdown arc, voice prompt, I'M OK / I NEED HELP |
 | **Alert** | red flashing, loud voice, 10 s last-chance cancel |

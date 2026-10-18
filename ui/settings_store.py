@@ -28,6 +28,10 @@ DEFAULTS: dict = {
     "voice_repeat_seconds": 10,   # re-ask during check-in
     "rearm_seconds": 120,         # after I'M OK: stillness timer held off
 
+    # Home screen photo slideshow (folder relative to the repo root)
+    "photo_dir": "my_family_album",
+    "photo_interval_s": 20,
+
     # Voice
     "voice_muted": False,
     "gemini_voice": "Kore",
@@ -71,7 +75,7 @@ DEFAULTS: dict = {
 
     # Trusted contact (displayed in the simulated call)
     "contact_name": "Jordan",
-    "contact_phone": "+1 555 0100",
+    "contact_phone": "+1 204 222 2222",
 }
 
 

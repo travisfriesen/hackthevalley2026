@@ -11,7 +11,7 @@ from __future__ import annotations
 import tkinter as tk
 
 import numpy as np
-from theme import BG_RGB, AMBER, BG, BLUE, DIM, GREEN, PANEL, TEXT
+from theme import FONT, BG_RGB, AMBER, BG, BLUE, DIM, GREEN, PANEL, TEXT
 
 
 # 32-step viridis-ish ramp, interpolated from 5 anchors (no matplotlib dep)
@@ -51,10 +51,10 @@ class Waterfall(tk.Frame):
         head.pack(fill="x", padx=6, pady=(4, 0))
         self.title = tk.Label(
             head, text="CSI  SUBCARRIERS", bg=PANEL, fg=TEXT,
-            font=("Helvetica", 9, "bold"))
+            font=(FONT, 9, "bold"))
         self.title.pack(side="left")
         self.hz_label = tk.Label(head, text="offline", bg=PANEL, fg=DIM,
-                                 font=("Helvetica", 9))
+                                 font=(FONT, 9))
         self.hz_label.pack(side="right")
 
         self.heat = tk.Canvas(self, bg=BG, highlightthickness=0, height=112)
@@ -123,7 +123,7 @@ class Waterfall(tk.Frame):
                 0, ty, w, ty, fill=AMBER, dash=(4, 3), tags=("ms",))
             self.strip.create_text(
                 w - 4, ty - 7, anchor="e", fill=AMBER,
-                font=("Helvetica", 8), text="threshold", tags=("ms",))
+                font=(FONT, 8), text="threshold", tags=("ms",))
         if baseline is not None:
             by = h - 6 - (baseline / (peak * 1.35)) * (h - 14)
             self.strip.create_line(
@@ -140,7 +140,7 @@ class Waterfall(tk.Frame):
                 width=2, tags=("ms",), smooth=True)
 
         self.strip.create_text(
-            4, 4, anchor="nw", fill=TEXT, font=("Helvetica", 9, "bold"),
+            4, 4, anchor="nw", fill=TEXT, font=(FONT, 9, "bold"),
             text=label, tags=("ms",))
 
     # -- entry point -----------------------------------------------------------

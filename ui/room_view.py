@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import math
 import tkinter as tk
-from theme import AMBER, BG, BLUE, BLUE_NEW, BLUE_OLD, DIM, GREEN, GRID_B, HOT, HOT_OLD, MARKER, MUTED_DOT, PANEL, ROOM_FILL, TEXT
+from theme import FONT, AMBER, BG, BLUE, BLUE_NEW, BLUE_OLD, DIM, GREEN, GRID_B, HOT, HOT_OLD, MARKER, MUTED_DOT, PANEL, ROOM_FILL, TEXT
 
 EVIDENCE_S = 25.0          # how long a hit point stays on the map
 EVIDENCE_STEP = 0.5        # sampling cadence for evidence points
@@ -99,26 +99,20 @@ class RoomCanvas(tk.Frame):
             c.create_line(a[0], a[1], b[0], b[1], fill=GRID_B,
                           tags=("static",))
 
-        door = self.room.get("door")
-        if door:
-            dx, dy = self._px(*door)
-            c.create_text(dx, dy, text="\u25bc door", fill=AMBER,
-                          font=("Helvetica", 8), tags=("static",))
-
         pico = self.room.get("pico")
         if pico:
             px, py = self._px(*pico)
             c.create_oval(px - 5, py - 5, px + 5, py + 5, fill=BLUE,
                           outline="", tags=("static",))
             c.create_text(px, py + 10, text="Pico", fill=BLUE,
-                          font=("Helvetica", 7), tags=("static",))
+                          font=(FONT, 7), tags=("static",))
         pi = self.room.get("pi")
         if pi:
             px, py = self._px(*pi)
             c.create_rectangle(px - 5, py - 5, px + 5, py + 5, fill=GREEN,
                                 outline="", tags=("static",))
             c.create_text(px, py + 10, text="Pi", fill=GREEN,
-                          font=("Helvetica", 7), tags=("static",))
+                          font=(FONT, 7), tags=("static",))
 
         for i, s in enumerate(self.room.get("sensors", [])):
             sx, sy = self._px(s["x"], s["y"])
@@ -130,7 +124,7 @@ class RoomCanvas(tk.Frame):
                 sx + dy * 4, sy - dx * 4,
                 fill=MARKER, outline="", tags=("static",))
             c.create_text(sx - dx * 12, sy - dy * 12, text=s.get("label", f"us{i+1}"),
-                          fill=TEXT, font=("Helvetica", 7, "bold"),
+                          fill=TEXT, font=(FONT, 7, "bold"),
                           tags=("static",))
 
     @staticmethod
@@ -147,7 +141,7 @@ class RoomCanvas(tk.Frame):
         if not self.room:
             c.create_text(c.winfo_width() / 2, c.winfo_height() / 2,
                           text="run Room setup from Settings",
-                          fill=DIM, font=("Helvetica", 10), tags=("dyn",))
+                          fill=DIM, font=(FONT, 10), tags=("dyn",))
             return
 
         sensors = self.room.get("sensors", [])
@@ -184,7 +178,7 @@ class RoomCanvas(tk.Frame):
                 c.create_line(sx, sy, ex, ey, fill=DIM, dash=(3, 3),
                              tags=("dyn",))
                 c.create_text(ex + dx * 8, ey + dy * 8, text="no echo",
-                              fill=DIM, font=("Helvetica", 7), tags=("dyn",))
+                              fill=DIM, font=(FONT, 7), tags=("dyn",))
                 continue
             hx, hy = self._px(s["x"] + dx * d, s["y"] + dy * d)
             color = HOT if dev else MUTED_DOT
@@ -219,7 +213,7 @@ class RoomCanvas(tk.Frame):
             c.create_oval(px - 2, py - 2, px + 2, py + 2, fill=GREEN,
                           outline="", tags=("dyn",))
             c.create_text(px, py - 12, text="PERSON", fill=GREEN,
-                          font=("Helvetica", 8, "bold"), tags=("dyn",))
+                          font=(FONT, 8, "bold"), tags=("dyn",))
 
         # sim ground truth (demo modes)
         truth = data.get("sim_truth")
@@ -230,7 +224,7 @@ class RoomCanvas(tk.Frame):
                           dash=(4, 3), width=2, tags=("dyn",))
             c.create_text(px, py + r + 8,
                           text="lying" if truth.get("lying") else "SIM",
-                          fill=HOT, font=("Helvetica", 8),
+                          fill=HOT, font=(FONT, 8),
                           tags=("dyn",))
 
         # CSI sightline + badges
@@ -248,17 +242,17 @@ class RoomCanvas(tk.Frame):
                 c.itemconfigure(line, width=3)
             c.create_text((a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 8,
                           text="CSI motion" if moving else "CSI quiet",
-                          fill=BLUE, font=("Helvetica", 7), tags=("dyn",))
+                          fill=BLUE, font=(FONT, 7), tags=("dyn",))
             if data.get("shape_changed"):
                 c.create_text(c.winfo_width() - 8, 16, anchor="e",
                               text="ROOM STATE CHANGED", fill=AMBER,
-                              font=("Helvetica", 9, "bold"), tags=("dyn",))
+                              font=(FONT, 9, "bold"), tags=("dyn",))
 
         # status corner
         status = data.get("status", "")
         if status:
             c.create_text(8, 8, anchor="nw", text=status, fill=TEXT,
-                          font=("Helvetica", 9, "bold"), tags=("dyn",))
+                          font=(FONT, 9, "bold"), tags=("dyn",))
 
     def _tap(self, _event) -> None:
         if self.on_tap:

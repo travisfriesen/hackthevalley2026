@@ -27,6 +27,7 @@ from csi_stream import CsiProcessor, LiveSource, ReplaySource, SimSource
 from escalation import Config, Escalation, State
 from feeds import AudioLevelFeed, SoundEventFeed, UltraFeed
 from gemini_tts import start_pregeneration
+from home import Home
 from room_math import PresenceEstimator, ray_intersection, ray_point
 from room_sim import SimRoom
 from screens import Alert, CheckIn, Dashboard, HelpSent, Settings, TrainingScreen
@@ -94,13 +95,14 @@ class App:
         self.activity = deque(maxlen=10)
 
         # -- screens
+        self.home = Home(root, self)
         self.dashboard = Dashboard(root, self)
         self.checkin = CheckIn(root, self)
         self.alert = Alert(root, self)
         self.helpsent = HelpSent(root, self)
         self.settings_screen = Settings(root, self)
         self.training_screen = TrainingScreen(root, self)
-        self.screens = {"dashboard": self.dashboard, "checkin": self.checkin,
+        self.screens = {"home": self.home, "dashboard": self.dashboard, "checkin": self.checkin,
                         "alert": self.alert, "helpsent": self.helpsent,
                         "settings": self.settings_screen,
                         "training": self.training_screen}
@@ -141,7 +143,7 @@ class App:
             record_s=settings.get("training_seconds", 30.0))
         self.recorder: TakeRecorder | None = None
 
-        self.show("dashboard")
+        self.show("home")
         self.speaker.speak("ready")
 
         self.root.after(100, self._tick_loop)
@@ -246,7 +248,7 @@ class App:
             # dashboard must not repaint it (the flashing) or cut off speech
             if frm in (State.CHECK_IN, State.ALERT, State.HELP_SENT):
                 self.speaker.stop()
-                self.show("dashboard")
+                self.show("home")
 
     # == screen management =====================================================
 
@@ -258,6 +260,9 @@ class App:
 
     def show_dashboard(self) -> None:
         self.show("dashboard")
+
+    def show_home(self) -> None:
+        self.show("home")
 
     def show_settings(self) -> None:
         self.show("settings")
