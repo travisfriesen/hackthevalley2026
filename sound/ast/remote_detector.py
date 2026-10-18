@@ -18,6 +18,7 @@ from pathlib import Path
 
 import joblib
 import numpy as np
+import soundfile as sf
 import torch
 from transformers import ASTFeatureExtractor, ASTForAudioClassification
 
@@ -109,6 +110,17 @@ class FileSim:
             f.write(line)
 
 
+def save_trigger(folder, x, t, label, p):
+    """Keep the audio of every alert so false alarms can be relabelled and trained on as hard negatives."""
+    if not folder:
+        return
+    try:
+        Path(folder).mkdir(parents=True, exist_ok=True)
+        sf.write(Path(folder) / f"{label}_{t:.2f}_p{p:.2f}.wav", x, SR, subtype="PCM_16")
+    except OSError as exc:
+        log.warning("could not save trigger clip: %s", exc)
+
+
 def run(link, args):
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     log.info("AST on %s", device)
@@ -156,6 +168,7 @@ def run(link, args):
             if label in AST_ALERTS and ongoing and p >= thr and end_t - last_alert.get(label, 0) > args.cooldown:
                 last_alert[label] = end_t
                 link.append(event_row(end_t, peak, label, p, "DISTRESS_SOUND"))
+                save_trigger(args.save_dir, x, end_t, label, p)
                 log.info("%s %.2f -> DISTRESS_SOUND", label, p)
 
         # falls: each loud impulse, once its 1.5 s tail has arrived; skip the first 4 s (detector warm-up)
@@ -172,6 +185,7 @@ def run(link, args):
                 log.info("  vetoed: AST says not_distress %.2f", probs[names.index("not_distress")])
             if pf >= args.fall_threshold and not benign:
                 link.append(event_row(t, float(np.abs(x[max(0, c - SR):c + SR]).max()), "fall", pf, "REVIEW_CANDIDATE"))
+                save_trigger(args.save_dir, x, t, "fall", pf)
 
         if not sim:
             time.sleep(max(0.0, args.hop - (time.time() - started)))
@@ -186,6 +200,7 @@ def main():
     ap.add_argument("--threshold", type=float, help="min AST probability for distress/glass/siren (default 0.6 frozen, 0.4 for --model: its probabilities are flatter)")
     ap.add_argument("--fall-threshold", type=float, default=0.9, help="min fall3s probability for a fall")
     ap.add_argument("--veto", type=float, default=0.5, help="with --model: drop a fall when AST's not_distress probability is above this")
+    ap.add_argument("--save-dir", default=str(HERE / "triggers"), help="where each alert's 14 s of audio is saved ('' to disable)")
     ap.add_argument("--cooldown", type=float, default=10.0, help="seconds between repeat alerts of one class")
     ap.add_argument("--hop", type=float, default=1.0)
     ap.add_argument("--wav", help="offline test: replay this 16 kHz wav as the Pi's rolling audio")

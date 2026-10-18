@@ -17,3 +17,4 @@ sound/ast/checkpoints/
 sound/ast/*.log
 sound/ast/manifest.csv
 sound/ast/models/
+sound/ast/triggers/
