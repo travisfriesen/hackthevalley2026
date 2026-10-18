@@ -130,6 +130,39 @@ Without vosk or the model it stays off and the buttons work as before.
 Only the check-in listens; the red alert still needs the button, so a stray
 word can't cancel a real alarm.
 
+### Understanding free-form answers (GPU server)
+
+Vosk only knows a few words. For "I'm fine, just my hip hurts" the GPU
+server runs `sound/speech/reply_worker.py`:
+
+```
+Pi rolling mic wav --ssh audio_tail--> server: VAD -> faster-whisper -> Claude
+                                                  |
+UI reads SPEECH_REPLY rows  <--ssh append_event---+   (fall_events.csv)
+```
+
+Each utterance becomes one `SPEECH_REPLY` row (`ok` / `help` / `unclear`, the
+transcript and a short reason); a `SPEECH_ALIVE` heartbeat every 10 s tells
+the UI the server is up. Same ssh gate as the AST detector, nothing new
+opened on the Pi. Claude reads the transcript; if it can't be reached the
+worker falls back to keyword rules (`sound/speech/reply.py`), which err
+toward help.
+
+In the UI, while the server is alive the offline listener may only
+escalate, not cancel: the server's answer decides "ok", so a quick "yes"
+can't hide the "...but I can't get up" that follows. If the server is
+down the offline listener decides alone. `unclear` answers repeat the
+question without resetting the countdown. Replies that began while the
+question was still playing are ignored.
+
+```
+pip install -r sound/speech/requirements.txt     # on the GPU server
+export ANTHROPIC_API_KEY=...
+cd sound/speech && python reply_worker.py --forced        # key forced to cloud_gate.sh
+python reply_worker.py --say "no I think I broke my hip"  # test the reading
+python reply_worker.py --wav answer.wav --whisper small.en --device cpu --no-llm
+```
+
 ## Files
 
 | File | Purpose |

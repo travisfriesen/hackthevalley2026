@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sys
 import threading
 import time
 import wave
@@ -25,7 +26,10 @@ from pathlib import Path
 
 import numpy as np
 
-from feeds import WAV_CANDIDATES, _first_existing
+REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT / "sound" / "speech"))
+from feeds import WAV_CANDIDATES, _first_existing  # noqa: E402
+from reply import classify  # noqa: E402,F401  (shared word rules)
 
 log = logging.getLogger("speech")
 
@@ -35,26 +39,8 @@ DEFAULT_MODEL = Path(__file__).resolve().parent / "speech_model"
 GRAMMAR = ["yes", "yeah", "yep", "no", "nope", "help", "i", "am", "need",
            "okay", "ok", "fine", "alright", "not", "[unk]"]
 
-_OK_WORDS = {"yes", "yeah", "yep", "okay", "ok", "fine", "alright"}
-_HELP_WORDS = {"no", "nope", "help"}
-_NEGATIONS = {"no", "nope", "not"}
-
 MARGIN_S = 0.3        # ignore this long after the speaker stops (room tail)
 MAX_CHUNK_S = 6.0
-
-
-def classify(text: str) -> str | None:
-    """'ok', 'help' or None for the recognised words.
-
-    Help wins over ok, so "no", "not okay" and "I need help" all ask for
-    help; only an unqualified yes / okay / fine counts as ok.
-    """
-    words = text.lower().replace("'", "").split()
-    if "help" in words or any(w in _NEGATIONS for w in words):
-        return "help"
-    if any(w in _OK_WORDS for w in words):
-        return "ok"
-    return None
 
 
 def read_tail(path, seconds: float):

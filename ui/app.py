@@ -26,11 +26,13 @@ from csi_stream import CsiProcessor, LiveSource, ReplaySource, SimSource
 from escalation import Config, Escalation, State
 from feeds import AudioLevelFeed, SoundEventFeed, UltraFeed
 from gemini_tts import start_pregeneration
-from speech import SpeechListener
 from room_math import PresenceEstimator, ray_intersection, ray_point
 from room_sim import SimRoom
 from screens import Alert, CheckIn, Dashboard, HelpSent, Settings
+from speech import SpeechListener
 from voice import Speaker
+
+import reply as reply_mod        # sound/speech, put on sys.path by speech.py
 
 log = logging.getLogger("app")
 
@@ -64,7 +66,11 @@ class App:
         self._speech_results: deque = deque()
         self.speech = SpeechListener(settings, self.speaker.busy,
                                      lambda label, text:
-                                     self._speech_results.append((label, text)))
+                                     self._speech_results.append(
+                                         ("local", label, text)))
+        self._last_spoke = 0.0         # wall time the voice last finished talking
+        self._checkin_wall = 0.0
+        self._last_reprompt = 0.0
         self._tts_thread = None
         self._tts_stop = None
         self.regen_voice()
@@ -203,6 +209,7 @@ class App:
         if to is State.CHECK_IN:
             self._checkin_entered = now
             self._checkin_repeat_k = 1
+            self._checkin_wall = time.time()
             self.speech.arm()
             self.speaker.speak("checkin")
             self.show("checkin")
@@ -273,17 +280,45 @@ class App:
         self.escalation.im_ok(self.now)
 
     def _drain_speech(self) -> None:
+        """Act on spoken answers during a check-in.
+
+        Replies from the GPU worker (Whisper + Claude) understand free-form
+        answers. While that worker is alive, the quick offline listener may
+        only escalate; it cannot cancel, so "yes, but my hip hurts" is not
+        cut short by the "yes". Without the worker it decides alone.
+        """
+        if self.speaker.busy():
+            self._last_spoke = time.time()
+        for row in self.events_feed.drain_replies():
+            reply = reply_mod.parse_reply(row["top_classes"], row["unix_time_approx"])
+            if reply is not None:
+                self._speech_results.append(("remote", reply.label, reply))
         while self._speech_results:
-            label, text = self._speech_results.popleft()
+            source, label, heard = self._speech_results.popleft()
             if self.escalation.machine.state is not State.CHECK_IN:
                 continue
-            self._log("checkin_voice", heard=text, result=label)
-            self.activity.appendleft(
-                (time.strftime("%H:%M:%S"), f'heard "{text}"'))
+            if source == "remote":
+                # ignore the question itself and anything said before it
+                if heard.start < max(self._last_spoke + 0.3, self._checkin_wall):
+                    continue
+                text, why = heard.text, heard.reason
+            else:
+                if label == "ok" and self.events_feed.speech_server_alive():
+                    self.speech.arm()          # let the richer answer decide
+                    continue
+                text, why = heard, ""
+            self._log("checkin_voice", source=source, heard=text, result=label, why=why)
+            self.activity.appendleft((time.strftime("%H:%M:%S"),
+                                      f'heard "{text}"' + (f" - {why}" if why else "")))
             if label == "ok":
                 self.escalation.im_ok(self.now)
-            else:
+            elif label == "help":
                 self.escalation.request_help(self.now)
+            else:
+                if time.time() - self._last_reprompt > 8.0:
+                    self._last_reprompt = time.time()
+                    self.speaker.speak("reprompt")
+                self.speech.arm()
 
     def checkin_help(self) -> None:
         self._log("checkin_need_help")
