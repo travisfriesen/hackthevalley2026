@@ -131,6 +131,7 @@ class App:
         self._prev_calibrating = False
         self._cal_start_at = None        # monotonic time the countdown ends
         self._cal_last_count = None      # last countdown number spoken
+        self._last_tick_error = -999.0
 
         self.show("dashboard")
         self.speaker.speak("ready")
@@ -140,7 +141,14 @@ class App:
     def _tick_loop(self) -> None:
         """The single timer loop. tick() itself does the work only, so tests
         can drive ticks without stacking up extra after() loops."""
-        self.tick()
+        try:
+            self.tick()
+        except Exception:                # noqa: BLE001
+            # one bad tick must never stop the loop: this UI is the safety net
+            now = time.monotonic()
+            if now - self._last_tick_error > 5.0:
+                self._last_tick_error = now
+                log.exception("tick failed (continuing)")
         self.root.after(100, self._tick_loop)
 
     # == helpers ==============================================================
@@ -518,6 +526,10 @@ class App:
                           if self.csi_mode in ("sim", "replay")
                           or self.ultra.mode == "sim" else None),
         })
+
+        # the banner follows the calibration, whichever screen is up (the map
+        # is a root-level widget, so it is placed there too)
+        self.dashboard.set_banner(cal_text if self._screen == "dashboard" else None)
 
         screen = self.screens.get(self._screen)
         if screen is not None:

@@ -262,7 +262,7 @@ class SoundEventFeed:
             chunk = f.read()
         self._offset = size
         lines = chunk.splitlines()
-        if not chunk.endswith("\n"):
+        if lines and not chunk.endswith("\n"):
             self._offset -= len(lines[-1]) + 1
             lines = lines[:-1]
         first_sight = self._new_file

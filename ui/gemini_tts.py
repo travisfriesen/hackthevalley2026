@@ -101,7 +101,8 @@ def pregenerate(settings: dict, cache_dir, api_key: str,
         if on_progress:
             on_progress("no key")
         return
-    for attempt in range(3):
+    attempts = 8                       # 429s are common on the free tier: keep going
+    for attempt in range(attempts):
         todo = missing(cache_dir, voice)
         if not todo:
             if on_progress:
@@ -118,12 +119,17 @@ def pregenerate(settings: dict, cache_dir, api_key: str,
             if stop is not None and stop.is_set():
                 return
             if i < len(todo) - 1:
+                pause = stagger if ok else stagger * 3     # back off after a 429
                 if stop is not None:
-                    stop.wait(stagger)
+                    stop.wait(pause)
                 else:
-                    time.sleep(stagger)
-        if attempt < 2:
-            time.sleep(60)             # wait out any rate limit
+                    time.sleep(pause)
+        if attempt < attempts - 1:
+            if stop is not None:
+                if stop.wait(60):      # wait out any rate limit
+                    return
+            else:
+                time.sleep(60)
 
 
 def start_pregeneration(settings: dict, cache_dir, api_key: str,

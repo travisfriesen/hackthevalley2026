@@ -237,3 +237,37 @@ def test_calibration_counts_down_aloud_then_calibrates():
     finally:
         app.close()
         root.destroy()
+
+
+def test_a_failing_tick_does_not_stop_the_loop():
+    from app import App
+    root = tk.Tk()
+    app = App(root, _settings(), fullscreen=False)
+    try:
+        scheduled = []
+        app.root.after = lambda ms, fn=None, *a: scheduled.append(ms)
+        app.tick = lambda: 1 / 0
+        app._tick_loop()                       # must swallow the error ...
+        assert scheduled == [100]              # ... and keep the loop alive
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_calibration_banner_sits_above_the_map_and_hides():
+    from app import App
+    root = tk.Tk()
+    root.geometry("800x480")
+    app = App(root, _settings(), fullscreen=False)
+    try:
+        banner = app.dashboard.cal_banner
+        assert banner.master is root           # same level as the room map
+        app.dashboard.set_banner("Leave the room\nCalibrating in 3")
+        root.update()
+        assert banner.winfo_ismapped()
+        app.dashboard.set_banner(None)
+        root.update()
+        assert not banner.winfo_ismapped()
+    finally:
+        app.close()
+        root.destroy()

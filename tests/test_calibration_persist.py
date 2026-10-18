@@ -45,3 +45,13 @@ def test_store_roundtrip_and_bad_files(tmp_path):
     assert settings_store.load_calibration(path)["motion"]["baseline"] == 0.1
     path.write_text("{not json")
     assert settings_store.load_calibration(path) == {}      # corrupt -> start clean
+
+
+def test_calibration_with_shapes_of_different_lengths_does_not_crash():
+    import numpy as np
+    p = CsiProcessor(window_s=2.0, factor=1.5)
+    p.cal_scores = [0.1, 0.2, 0.3]
+    p.cal_shapes = [np.ones(5), np.ones(6), np.ones(6)]      # mask resized mid-window
+    p.finish_calibration()
+    assert p.baseline == pytest.approx(0.2)
+    assert len(p.shape_base) == 6

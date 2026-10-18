@@ -74,8 +74,11 @@ class Dashboard(Screen):
         self.clock = tk.Label(top, text="", bg=PANEL, fg=TEXT,
                               font=("Helvetica", 15, "bold"))
         self.clock.pack(side="right", padx=10)
-        # calibration countdown, big enough to read from across the room
-        self.cal_banner = tk.Label(self, bg=AMBER, fg=BG, justify="center",
+        # calibration countdown, big enough to read from across the room. A
+        # child of the root window, like the room map (which is repacked over
+        # the dashboard): as a child of the dashboard it sat behind the map.
+        self.cal_banner = tk.Label(self.winfo_toplevel(), bg=AMBER, fg=BG,
+                                   justify="center",
                                    font=("Helvetica", 44, "bold"))
 
         # -- left column: room map + CSI waterfall
@@ -129,6 +132,17 @@ class Dashboard(Screen):
                                 app.manual_help, size=16)
         self.help.pack(fill="x", side="bottom", ipady=10)
 
+    def set_banner(self, text) -> None:
+        """Show the calibration banner over everything, or hide it (None)."""
+        if text:
+            if self.cal_banner.cget("text") != text:
+                self.cal_banner.config(text=text)
+            self.cal_banner.place(relx=0.5, rely=0.5, anchor="center",
+                                  relwidth=0.8, relheight=0.5)
+            self.cal_banner.lift()
+        else:
+            self.cal_banner.place_forget()
+
     # Redraw at 5 Hz while the logic still ticks at 10 Hz: on the Pi (Tk -> Xwayland)
     # the redraw rate drives CPU use and the lag, and bars/maps look fine at 5 Hz.
     DRAW_INTERVAL = 0.2
@@ -139,13 +153,6 @@ class Dashboard(Screen):
         self._last_draw = app.now
         d = app.d
         self.clock.config(text=d["clock"])
-        if d.get("cal_text"):
-            self.cal_banner.config(text=d["cal_text"])
-            self.cal_banner.place(relx=0.5, rely=0.5, anchor="center",
-                                  relwidth=0.8, relheight=0.5)
-            self.cal_banner.lift()
-        else:
-            self.cal_banner.place_forget()
         self.pill_presence.set(
             "PERSON IN ROOM" if d["presence"] else "ROOM EMPTY",
             GREEN if d["presence"] else DIM)

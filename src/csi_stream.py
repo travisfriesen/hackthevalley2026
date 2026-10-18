@@ -355,6 +355,12 @@ class CsiProcessor:
             return
         self.baseline = float(np.median(self.cal_scores))
         self.threshold = self.baseline * self.factor
+        # the usable-subcarrier mask can change size mid-calibration, so the
+        # shapes may differ in length: keep the most common length
+        lengths = [len(s) for s in self.cal_shapes]
+        if lengths:
+            keep = max(set(lengths), key=lengths.count)
+            self.cal_shapes = [s for s in self.cal_shapes if len(s) == keep]
         if self.cal_shapes:
             shapes = np.stack(self.cal_shapes)
             self.shape_base = shapes.mean(axis=0)
