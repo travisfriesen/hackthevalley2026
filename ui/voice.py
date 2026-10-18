@@ -18,6 +18,8 @@ import subprocess
 import sys
 import threading
 
+from training import PHRASES as TRAIN_PHRASES
+
 log = logging.getLogger("voice")
 
 # key -> (text, urgency)  urgency shapes the Gemini `style` hint
@@ -39,6 +41,8 @@ PHRASES: dict[str, str] = {
     "calibrated": "Calibration complete.",
     "calibration_failed": "Calibration failed. No sensor data.",
 }
+
+PHRASES.update(TRAIN_PHRASES)
 
 URGENT = {"alert", "alert_reminder", "helpsent"}
 

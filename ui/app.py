@@ -29,8 +29,10 @@ from feeds import AudioLevelFeed, SoundEventFeed, UltraFeed
 from gemini_tts import start_pregeneration
 from room_math import PresenceEstimator, ray_intersection, ray_point
 from room_sim import SimRoom
-from screens import Alert, CheckIn, Dashboard, HelpSent, Settings
+from screens import Alert, CheckIn, Dashboard, HelpSent, Settings, TrainingScreen
+from recorder import TakeRecorder
 from speech import SpeechListener
+from training import Training
 from voice import Speaker
 
 import reply as reply_mod        # sound/speech, put on sys.path by speech.py
@@ -97,9 +99,11 @@ class App:
         self.alert = Alert(root, self)
         self.helpsent = HelpSent(root, self)
         self.settings_screen = Settings(root, self)
+        self.training_screen = TrainingScreen(root, self)
         self.screens = {"dashboard": self.dashboard, "checkin": self.checkin,
                         "alert": self.alert, "helpsent": self.helpsent,
-                        "settings": self.settings_screen}
+                        "settings": self.settings_screen,
+                        "training": self.training_screen}
 
         from room_setup import RoomSetup
         self.room_setup = RoomSetup(root, settings, on_done=self._room_saved)
@@ -132,6 +136,10 @@ class App:
         self._cal_start_at = None        # monotonic time the countdown ends
         self._cal_last_count = None      # last countdown number spoken
         self._last_tick_error = -999.0
+        self.training = Training(
+            position_s=settings.get("training_position_s", 10.0),
+            record_s=settings.get("training_seconds", 30.0))
+        self.recorder: TakeRecorder | None = None
 
         self.show("dashboard")
         self.speaker.speak("ready")
@@ -487,15 +495,19 @@ class App:
             self._seen_sound_events.add(key)
             if event.get("rise_db"):
                 continue        # loud-sound heuristic row (speech, doors...): shown in the feed, never a fall on its own
+            if self.training.active:
+                continue        # someone lying on the floor on purpose
             if now - self._last_sound_trigger > 8.0:
                 self._last_sound_trigger = now
                 label = (event.get("top_classes") or "loud sound")[:40]
                 self.escalation.sound_candidate(now, label)
 
-        # 5. drive the machine
-        self.escalation.set_presence(now, present)
-        self.escalation.set_motion(now, bool(moving))
-        self.escalation.tick(now)
+        # 5. drive the machine (held while a guided training is running)
+        self._training_tick(now, wall, readings)
+        if not self.training.active:
+            self.escalation.set_presence(now, present)
+            self.escalation.set_motion(now, bool(moving))
+            self.escalation.tick(now)
         state = self.escalation.snapshot(now)
 
         # 6. voice scheduling
@@ -535,6 +547,55 @@ class App:
         if screen is not None:
             screen.refresh(self)
         # rescheduling happens once, in _tick_loop
+
+    # == guided training ========================================================
+
+    def start_training(self) -> None:
+        if self.escalation.machine.state not in (State.AWAY, State.ACTIVE, State.STILL):
+            return                       # not in the middle of a check-in or alert
+        base = Path(self.settings.get("training_dir")
+                    or Path.home() / "captures" / "training")
+        out = base / time.strftime("session_%Y%m%d_%H%M%S")
+        tcpdump = (self.settings.get("tcpdump_cmd")
+                   if self.csi_mode == "live" else None)
+        self.recorder = TakeRecorder(
+            out, tcpdump, self.settings.get("max_distance_m", 4.0))
+        self.training.start(self.now)
+        self.activity.appendleft(
+            (time.strftime("%H:%M:%S"), f"guided training -> {out}"))
+        self._log("training_started", dir=str(out))
+        self.show("training")
+
+    def stop_training(self) -> None:
+        self._run_training(self.training.stop(self.now))
+        self.speaker.stop()
+        self._log("training_stopped")
+        self.show("settings")
+
+    def skip_training_take(self) -> None:
+        self._run_training(self.training.skip(self.now))
+
+    def _training_tick(self, now, wall, readings) -> None:
+        if not self.training.active:
+            return
+        self._run_training(self.training.tick(now))
+        if self.recorder is not None and self.recorder.recording:
+            self.recorder.sample(wall, readings)
+
+    def _run_training(self, actions) -> None:
+        for action in actions:
+            kind = action[0]
+            if kind == "speak":
+                self.speaker.interrupt_and_speak(action[1])
+            elif kind == "record_start" and self.recorder is not None:
+                self.recorder.start(action[1])
+                self.activity.appendleft(
+                    (time.strftime("%H:%M:%S"), f"recording {action[1]} ({action[2]:.0f} s)"))
+            elif kind == "record_stop" and self.recorder is not None:
+                self.recorder.stop()
+            elif kind == "finished":
+                self._log("training_finished")
+                self.show("settings")
 
     def _finish_calibration(self, snap) -> None:
         calibrating = snap.get("calibrating")
@@ -634,6 +695,8 @@ class App:
         }
 
     def close(self) -> None:
+        if self.recorder is not None:
+            self.recorder.stop()
         if self.csi_stop is not None:
             self.csi_stop.set()
         if self._tts_stop is not None:

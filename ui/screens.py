@@ -1,4 +1,4 @@
-"""The five touchscreen screens: Dashboard, CheckIn, Alert, HelpSent, Settings.
+"""The touchscreen screens: Dashboard, CheckIn, Alert, HelpSent, Settings, Training.
 
 All screens are flat Tk frames at 800x480 with oversized touch targets. Each
 has a refresh(app) the App calls at 10 Hz when visible; screens throttle
@@ -542,6 +542,7 @@ class Settings(Screen):
         # in the bottom bar, not the crowded right column, where they were
         # squeezed to nothing on the 7" screen
         for text, command in (("Calibrate empty room", app.start_calibration),
+                              ("Guided training", app.start_training),
                               ("Room setup", app.run_room_setup),
                               ("Regenerate voice", app.regen_voice)):
             tk.Button(btns2, text=text, bg=PANEL2, fg=TEXT, bd=0, font=SMALL,
@@ -579,3 +580,55 @@ class Settings(Screen):
 
     def refresh(self, app) -> None:
         pass
+
+
+# == Guided training =========================================================
+
+class TrainingScreen(Screen):
+    """What to do now, and the countdown: the spoken instructions on screen."""
+
+    def __init__(self, master, app):
+        super().__init__(master)
+        self.app = app
+        tk.Label(self, text="GUIDED TRAINING", bg=BG, fg=TEXT,
+                 font=("Helvetica", 18, "bold")).pack(pady=(14, 0))
+        self.step = tk.Label(self, text="", bg=BG, fg=DIM, font=MED)
+        self.step.pack()
+        self.label = tk.Label(self, text="", bg=BG, fg=AMBER,
+                              font=("Helvetica", 34, "bold"))
+        self.label.pack(pady=(10, 0))
+        self.text = tk.Label(self, text="", bg=BG, fg=TEXT, wraplength=720,
+                             font=("Helvetica", 16))
+        self.text.pack(pady=(6, 0))
+        self.big = tk.Label(self, text="", bg=BG, fg=TEXT,
+                            font=("Helvetica", 64, "bold"))
+        self.big.pack(expand=True)
+        self.note = tk.Label(self, text="", bg=BG, fg=DIM, font=MED)
+        self.note.pack()
+        btns = tk.Frame(self, bg=BG)
+        btns.pack(side="bottom", pady=14)
+        big_button(btns, "SKIP TAKE", PANEL2, TEXT, app.skip_training_take,
+                   size=16).pack(side="left", padx=8, ipadx=24, ipady=10)
+        big_button(btns, "STOP", RED_D, "white", app.stop_training,
+                   size=16).pack(side="left", padx=8, ipadx=40, ipady=10)
+
+    def refresh(self, app) -> None:
+        snap = app.training.snapshot(app.now)
+        if not snap["active"]:
+            return
+        phase, left = snap["phase"], snap["remaining"]
+        self.step.config(text=f"Take {snap['index'] + 1} of {snap['total']}")
+        self.label.config(text=snap["label"].upper())
+        self.text.config(text=snap["text"].removeprefix("Next: ").capitalize())
+        if phase == "instruct":
+            self.big.config(text=f"{left:.0f}", fg=TEXT)
+            self.note.config(text="get into position, recording starts after the countdown")
+        elif phase == "count":
+            self.big.config(text=f"{max(1, round(left + 0.49))}", fg=AMBER)
+            self.note.config(text="get ready")
+        elif phase == "record":
+            self.big.config(text=f"{left:.0f}", fg=RED)
+            self.note.config(text="RECORDING")
+        else:
+            self.big.config(text="done", fg=GREEN)
+            self.note.config(text="next take coming up")

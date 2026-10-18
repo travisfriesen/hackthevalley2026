@@ -39,6 +39,11 @@ DEFAULTS: dict = {
     "speech_enabled": True,
     "speech_model": "",            # default: ui/speech_model/
 
+    # Guided training (Settings -> Guided training)
+    "training_seconds": 30,        # length of each recorded take
+    "training_position_s": 10,     # time to get into position after the instruction
+    "training_dir": "",            # default ~/captures/training
+
     # CSI motion scoring (see docs/LOG.md phase 0)
     "motion_window_s": 2.0,        # window length
     "motion_factor": 1.5,          # threshold = calibrated baseline * factor

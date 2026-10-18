@@ -271,3 +271,70 @@ def test_calibration_banner_sits_above_the_map_and_hides():
     finally:
         app.close()
         root.destroy()
+
+
+def test_guided_training_runs_end_to_end(tmp_path):
+    import json
+    from app import App
+    from training import TAKES
+    settings = _settings()
+    settings["training_dir"] = str(tmp_path)
+    root = tk.Tk()
+    root.geometry("800x480")
+    app = App(root, settings, fullscreen=False)
+    try:
+        spoken = []
+        app.speaker.interrupt_and_speak = lambda key, *a, **k: spoken.append(key)
+        app.speaker.stop = lambda: None
+        app.training.takes = TAKES[:2]
+        app.training.position_s, app.training.count_s = 0.2, 2
+        app.training.record_s, app.training.rest_s = 0.6, 0.2
+
+        app.start_training()
+        assert app._screen == "training" and app.training.active
+        for _ in range(120):                       # ~ 8 s of the real tick loop
+            root.update()
+            time.sleep(0.07)
+            if not app.training.active:
+                break
+        assert not app.training.active
+        assert app._screen == "settings"
+
+        assert spoken[0] == "train_empty" and spoken[-1] == "train_complete"
+        assert spoken.count("train_recording") == 2 and spoken.count("train_done") == 2
+        assert "count_2" in spoken and "count_1" in spoken
+
+        session = next(tmp_path.iterdir())
+        labels = [json.loads(line) for line in (session / "labels.jsonl").read_text().splitlines()]
+        assert [row["label"] for row in labels] == ["empty", "walking"]
+        for row in labels:
+            csv = session / row["file"]
+            rows = csv.with_suffix(".us.csv").read_text().splitlines()
+            assert rows[0] == "epoch_s,d1_cm,d2_cm" and len(rows) > 3   # ultrasonic logged
+    finally:
+        app.close()
+        root.destroy()
+
+
+def test_training_holds_the_alerts_and_wont_start_during_a_check_in():
+    root, app = _check_in_app()
+    try:
+        app.start_training()
+        assert not app.training.active                      # a check-in is running
+        app.checkin_ok()
+        app.start_training()
+        assert app.training.active
+
+        fed = []
+        app.escalation.set_presence = lambda *a: fed.append("presence")
+        app.escalation.set_motion = lambda *a: fed.append("motion")
+        app.escalation.tick = lambda *a: fed.append("tick")
+        app.tick()
+        assert fed == []                                    # held while training
+
+        app.training.active = False
+        app.tick()
+        assert fed == ["presence", "motion", "tick"]        # and live again afterwards
+    finally:
+        app.close()
+        root.destroy()
