@@ -37,7 +37,8 @@ PAGE = r"""<!doctype html>
   #lvl { height: 100%; width: 0; background: #2ea360; }
   #msg { color: #5d6878; min-height: 3em; }
 </style>
-<h2>DownLink phone microphone</h2>
+<img src="/logo.png" alt="DownLink" style="display:block; width:55%; max-width:260px; margin:0 auto 12px">
+<h2 style="text-align:center">Phone microphone</h2>
 <button id="go">Start microphone</button>
 <div id="bar"><div id="lvl"></div></div>
 <div id="msg">Keep this screen on and this tab in front.</div>
@@ -100,6 +101,13 @@ function stop() {
 go.onclick = () => (running ? stop() : start()).catch(e => { msg.textContent = 'Error: ' + e; });
 </script>
 """
+
+
+LOGO = Path(__file__).resolve().parent.parent / "ui" / "assets" / "logo_full.png"
+
+
+async def logo(request: web.Request) -> web.StreamResponse:
+    return web.FileResponse(LOGO)
 
 
 async def index(request: web.Request) -> web.Response:
@@ -168,7 +176,7 @@ def main() -> None:
 
     app = web.Application()
     app["token"], app["receiver_port"] = args.token, args.receiver_port
-    app.add_routes([web.get("/", index), web.get("/ws", stream)])
+    app.add_routes([web.get("/", index), web.get("/logo.png", logo), web.get("/ws", stream)])
     log.info("Open https://<pi-address>:%d on the phone", args.port)
     web.run_app(app, host="0.0.0.0", port=args.port, ssl_context=tls, print=None)
 
