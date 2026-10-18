@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 import queue
 import shutil
+import shlex
 import subprocess
 import sys
 import threading
@@ -90,8 +91,12 @@ class Speaker:
     def _say(self, key: str, text: str) -> None:
         wav = self._cached(key)
         if wav is not None:
-            cmd = (["afplay", str(wav)] if sys.platform == "darwin"
-                   else ["aplay", "-q", str(wav)])
+            if sys.platform == "darwin":
+                cmd = ["afplay", str(wav)]
+            elif shutil.which("pw-play"):   # through PipeWire so a connected Bluetooth speaker is used
+                cmd = ["pw-play", str(wav)]
+            else:
+                cmd = ["aplay", "-q", str(wav)]
         else:
             cmd = self._fallback_cmd(text)
         if cmd is None:
@@ -122,6 +127,8 @@ class Speaker:
         return None
 
     def _fallback_cmd(self, text: str):
+        if shutil.which("espeak-ng") and shutil.which("pw-play"):
+            return ["sh", "-c", "espeak-ng -v en-us -s 155 --stdout " + shlex.quote(text) + " | pw-play -"]
         if shutil.which("espeak-ng"):
             return ["espeak-ng", "-v", "en-us", "-s", "155", text]
         if sys.platform == "darwin" and shutil.which("say"):
