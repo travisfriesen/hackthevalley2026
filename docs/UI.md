@@ -136,7 +136,7 @@ Vosk only knows a few words. For "I'm fine, just my hip hurts" the GPU
 server runs `sound/speech/reply_worker.py`:
 
 ```
-Pi rolling mic wav --ssh audio_tail--> server: VAD -> faster-whisper -> Claude
+Pi rolling mic wav --ssh audio_tail--> server: VAD -> faster-whisper -> Ollama (local LLM)
                                                   |
 UI reads SPEECH_REPLY rows  <--ssh append_event---+   (fall_events.csv)
 ```
@@ -144,7 +144,7 @@ UI reads SPEECH_REPLY rows  <--ssh append_event---+   (fall_events.csv)
 Each utterance becomes one `SPEECH_REPLY` row (`ok` / `help` / `unclear`, the
 transcript and a short reason); a `SPEECH_ALIVE` heartbeat every 10 s tells
 the UI the server is up. Same ssh gate as the AST detector, nothing new
-opened on the Pi. Claude reads the transcript; if it can't be reached the
+opened on the Pi. A local Ollama model reads the transcript; if it can't be reached the
 worker falls back to keyword rules (`sound/speech/reply.py`), which err
 toward help.
 
@@ -157,10 +157,10 @@ question was still playing are ignored.
 
 ```
 pip install -r sound/speech/requirements.txt     # on the GPU server
-export ANTHROPIC_API_KEY=...
+ollama pull qwen2.5:7b                           # a 3b model also judged correctly in tests
 cd sound/speech && python reply_worker.py --forced        # key forced to cloud_gate.sh
 python reply_worker.py --say "no I think I broke my hip"  # test the reading
-python reply_worker.py --wav answer.wav --whisper small.en --device cpu --no-llm
+python reply_worker.py --wav answer.wav --whisper small.en --device cpu --llm none
 ```
 
 ## Files

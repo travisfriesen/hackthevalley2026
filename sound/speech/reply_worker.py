@@ -1,4 +1,4 @@
-"""Whisper + Claude: hear how the person answers "Are you okay?" (runs on the GPU server).
+"""Whisper + a local LLM: hear how the person answers "Are you okay?" (runs on the GPU server).
 
     python reply_worker.py --pi travis@100.127.214.108
     python reply_worker.py --forced              # on the server, key forced to cloud_gate.sh
@@ -6,14 +6,15 @@
     python reply_worker.py --say "no I think I broke my hip"   # just test the interpretation
 
 Every utterance heard in the Pi's rolling mic audio is transcribed with
-faster-whisper, interpreted (Claude, keyword rules if Claude is unreachable)
+faster-whisper, interpreted (a local Ollama model; keyword rules if it is unreachable)
 and appended to the Pi's fall_events.csv as a SPEECH_REPLY row, which the
 touchscreen UI reads during a check-in. A SPEECH_ALIVE row every 10 s tells
 the UI the worker is up, so it knows to wait for the richer answer.
 
 Same transport as sound/ast/remote_detector.py: the Pi's scripts/pi/cloud_gate.sh
 (audio_tail / append_event over ssh); nothing new is opened on the Pi.
-Needs: pip install faster-whisper anthropic numpy   (ANTHROPIC_API_KEY set)
+Needs: pip install faster-whisper numpy, and `ollama pull qwen2.5:7b` (--llm claude
+needs the anthropic package and ANTHROPIC_API_KEY instead)
 """
 
 from __future__ import annotations
@@ -27,7 +28,7 @@ import wave
 
 import numpy as np
 
-from reply import alive_row, interpret, reply_row
+from reply import alive_row, claude_ask, interpret, ollama_ask, reply_row
 from segmenter import SR, Segmenter
 
 log = logging.getLogger("reply_worker")
@@ -132,19 +133,23 @@ def transcribe(model, audio: np.ndarray) -> str:
     return text
 
 
+def make_ask(args):
+    """The function that reads a transcript, or None for keyword rules only."""
+    if args.llm == "ollama":
+        return ollama_ask(args.llm_model, args.ollama_host)
+    if args.llm == "claude":
+        import anthropic
+        return claude_ask(anthropic.Anthropic(), args.llm_model)
+    return None
+
+
 def run(link, args) -> None:
-    client = None
-    if not args.no_llm:
-        try:
-            import anthropic
-            client = anthropic.Anthropic()
-        except Exception as exc:         # noqa: BLE001
-            log.warning("Claude unavailable (%s); using keyword rules", exc)
+    ask = make_ask(args)
     model = load_whisper(args.whisper, args.device)
     seg = Segmenter()
     last_alive, last_end = 0.0, 0.0
     log.info("listening (whisper %s on %s, interpreter %s)", args.whisper, args.device,
-             args.llm_model if client else "rules")
+             f"{args.llm}:{args.llm_model}" if ask else "rules")
     while True:
         started = time.time()
         if link.now() - last_alive >= ALIVE_EVERY:
@@ -159,7 +164,7 @@ def run(link, args) -> None:
                     text = transcribe(model, utt.audio)
                     if not text:
                         continue
-                    reply = interpret(text, client, args.llm_model)
+                    reply = interpret(text, ask)
                     reply.start, reply.end = utt.start, utt.end
                     log.info("%r -> %s (%s: %s)", text, reply.label, reply.source, reply.reason)
                     link.append(reply_row(reply))
@@ -174,19 +179,17 @@ def main() -> None:
     ap.add_argument("--forced", action="store_true", help="the ssh key's forced command is cloud_gate.sh (cloud server)")
     ap.add_argument("--whisper", default="large-v3", help="faster-whisper model (small.en is fine on a CPU)")
     ap.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
-    ap.add_argument("--llm-model", default="claude-opus-5-5",
-                    help="Claude model that reads the transcript (claude-haiku-5-5 is cheaper and faster)")
-    ap.add_argument("--no-llm", action="store_true", help="keyword rules only")
+    ap.add_argument("--llm", default="ollama", choices=["ollama", "claude", "none"],
+                    help="what reads the transcript (none = keyword rules only)")
+    ap.add_argument("--llm-model", default="qwen2.5:7b",
+                    help="model name for --llm (ollama: any pulled model; claude: e.g. claude-haiku-5-5)")
+    ap.add_argument("--ollama-host", default="http://localhost:11434")
     ap.add_argument("--hop", type=float, default=0.5, help="seconds between audio fetches")
     ap.add_argument("--wav", help="offline test: replay this 16 kHz mono wav")
     ap.add_argument("--say", help="offline test: interpret this text and exit")
     args = ap.parse_args()
     if args.say:
-        client = None
-        if not args.no_llm:
-            import anthropic
-            client = anthropic.Anthropic()
-        print(interpret(args.say, client, args.llm_model))
+        print(interpret(args.say, make_ask(args)))
         return
     run(WavLink(args.wav) if args.wav else PiLink(args.pi, args.forced), args)
 

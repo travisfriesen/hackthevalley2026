@@ -28,44 +28,57 @@ def test_rule_interpret(text, label):
     assert reply.rule_interpret(text).label == label
 
 
-class FakeClient:
-    def __init__(self, answer=None, error=None):
-        self.answer, self.error, self.calls = answer, error, []
+def answers(text=None, error=None):
+    """An `ask` function that returns a canned model answer (or raises)."""
+    calls = []
 
-    def with_options(self, **kw):
-        return self
-
-    @property
-    def messages(self):
-        return self
-
-    def create(self, **kw):
-        self.calls.append(kw)
-        if self.error:
-            raise self.error
-        block = type("B", (), {"type": "text", "text": self.answer})
-        return type("R", (), {"content": [block]})
+    def ask(transcript):
+        calls.append(transcript)
+        if error:
+            raise error
+        return text
+    ask.calls = calls
+    return ask
 
 
-def test_claude_answer_is_used():
-    client = FakeClient('Sure: {"label": "ok", "reason": "declines help"}')
-    r = reply.interpret("no, I'm fine", client, "m")
+def test_model_answer_is_used():
+    ask = answers('Sure: {"label": "ok", "reason": "declines help"}')
+    r = reply.interpret("no, I'm fine", ask)
     assert (r.label, r.source, r.reason) == ("ok", "llm", "declines help")
-    assert "no, I'm fine" in client.calls[0]["messages"][0]["content"]
+    assert ask.calls == ["no, I'm fine"]
 
 
-def test_falls_back_to_rules_when_claude_fails():
-    r = reply.interpret("help me", FakeClient(error=RuntimeError("down")), "m")
+def test_falls_back_to_rules_when_model_fails():
+    r = reply.interpret("help me", answers(error=RuntimeError("down")))
     assert (r.label, r.source) == ("help", "rules")
 
 
 def test_falls_back_to_rules_on_garbage_answer():
-    r = reply.interpret("yes", FakeClient("I think they are fine"), "m")
+    r = reply.interpret("yes", answers("I think they are fine"))
     assert (r.label, r.source) == ("ok", "rules")
 
 
-def test_no_client_uses_rules():
-    assert reply.interpret("yes", None, "").label == "ok"
+def test_no_model_uses_rules():
+    assert reply.interpret("yes").label == "ok"
+
+
+def test_ollama_ask_posts_the_transcript(monkeypatch):
+    import io
+    import json
+    import urllib.request
+    seen = {}
+
+    def fake_urlopen(req, timeout):
+        seen["url"], seen["body"] = req.full_url, json.loads(req.data)
+        return io.BytesIO(json.dumps(
+            {"message": {"content": '{"label": "help", "reason": "r"}'}}).encode())
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    r = reply.interpret("my leg hurts", reply.ollama_ask("m1", "http://h:1"))
+    assert r.label == "help" and r.source == "llm"
+    assert seen["url"] == "http://h:1/api/chat"
+    assert seen["body"]["model"] == "m1" and seen["body"]["format"] == "json"
+    assert "my leg hurts" in seen["body"]["messages"][1]["content"]
 
 
 def test_row_roundtrip_with_commas_and_quotes():
