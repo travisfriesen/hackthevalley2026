@@ -155,6 +155,16 @@ down the offline listener decides alone. `unclear` answers repeat the
 question without resetting the countdown. Replies that began while the
 question was still playing are ignored.
 
+On the Vultr box (A16 x2) it lives in `/root/speech` with its own
+`/root/venv-speech` (so it can't disturb the AST detector's torch venv),
+Whisper on GPU 0 and Ollama on GPU 1. It reaches the Pi as `ssh pi`, the
+forced-command `id_pi` key. Copy `sound/speech/{reply,segmenter,reply_worker}.py`
+there to update it. It runs as the `kaze-speech` systemd unit:
+`systemctl start kaze-speech` (or `enable --now` to survive reboots), and
+`journalctl -u kaze-speech -f` to watch what it hears. Start it only once the
+Pi runs a UI with this feature: the heartbeat rows it writes show up as
+sound events on older UIs.
+
 ```
 pip install -r sound/speech/requirements.txt     # on the GPU server
 ollama pull qwen2.5:7b                           # a 3b model also judged correctly in tests
