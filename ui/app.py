@@ -72,7 +72,7 @@ class App:
                                      lambda label, text:
                                      self._speech_results.append(
                                          ("local", label, text)))
-        self._last_spoke = 0.0         # wall time the voice last finished talking
+        self._spoke_spans: list = []   # [[start, end], ...] wall times the voice was talking
         self._checkin_wall = 0.0
         self._last_reprompt = 0.0
         self._tts_thread = None
@@ -303,6 +303,15 @@ class App:
         self._log("checkin_ok")
         self.escalation.im_ok(self.now)
 
+    def _note_own_voice(self, wall: float) -> None:
+        """Remember when this device was speaking, as [start, end] wall times."""
+        if self.speaker.busy():
+            if self._spoke_spans and wall - self._spoke_spans[-1][1] < 0.6:
+                self._spoke_spans[-1][1] = wall          # same utterance (or a short gap)
+            else:
+                self._spoke_spans.append([wall, wall])
+                del self._spoke_spans[:-40]
+
     def voice_reply_ready(self) -> bool:
         """True when something is listening for a spoken answer."""
         return self.speech.available or self.events_feed.speech_server_alive()
@@ -315,8 +324,7 @@ class App:
         only escalate; it cannot cancel, so "yes, but my hip hurts" is not
         cut short by the "yes". Without the worker it decides alone.
         """
-        if self.speaker.busy():
-            self._last_spoke = time.time()
+        self._note_own_voice(time.time())
         for row in self.events_feed.drain_replies():
             reply = reply_mod.parse_reply(row["top_classes"], row["unix_time_approx"])
             if reply is not None:
@@ -328,16 +336,19 @@ class App:
                          getattr(heard, "text", heard))
                 continue
             if source == "remote":
-                # ignore the question itself and anything said before it
-                if reply_mod.looks_like_prompt(heard.text):
-                    log.info("ignored reply %r: the question itself", heard.text)
+                # keep only the words spoken while this device was silent: the
+                # mic hears the question, and an answer often follows it closely
+                said = reply_mod.without_own_voice(
+                    heard, self._spoke_spans, floor=self._checkin_wall,
+                    lag=self.settings.get("speech_audio_lag_s", 0.5))
+                if said is None:
+                    log.info("ignored reply %r (%s): the device's own voice or before the question",
+                             heard.text, label)
                     continue
-                # 1 s: a bluetooth speaker plays a moment after the UI is done
-                cutoff = max(self._last_spoke + 1.0, self._checkin_wall)
-                if heard.start < cutoff:
-                    log.info("ignored reply %r (%s): started %.1f s before the question ended",
-                             heard.text, label, cutoff - heard.start)
-                    continue
+                if said is not heard:
+                    log.info("reply %r -> %r after removing the device's own voice",
+                             heard.text, said.text)
+                heard, label = said, said.label
                 text, why = heard.text, heard.reason
             else:
                 if label == "ok" and self.events_feed.speech_server_alive():

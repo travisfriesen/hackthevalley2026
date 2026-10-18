@@ -22,7 +22,7 @@ import json
 import logging
 import re
 import urllib.request
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 log = logging.getLogger("reply")
 
@@ -46,6 +46,7 @@ class Reply:
     start: float = 0.0    # when the person started speaking (Pi clock)
     end: float = 0.0
     source: str = "rules" # "rules" | "llm"
+    words: list = field(default_factory=list)   # [[word, start, end], ...] Pi clock
 
 
 def _words(text: str) -> list[str]:
@@ -182,7 +183,8 @@ def interpret(text: str, ask=None) -> Reply:
 def reply_row(reply: Reply) -> str:
     payload = json.dumps({"label": reply.label, "reason": reply.reason,
                           "text": reply.text, "start": round(reply.start, 3),
-                          "source": reply.source})
+                          "source": reply.source,
+                          "words": [[w, round(a, 2), round(b, 2)] for w, a, b in reply.words]})
     return _row(reply.end, payload, STATUS_REPLY)
 
 
@@ -200,7 +202,44 @@ def parse_reply(top_classes: str, end: float) -> Reply | None:
     if label not in ("ok", "help", "unclear"):
         return None
     return Reply(label, data.get("reason", ""), data.get("text", ""),
-                 float(data.get("start", end)), end, data.get("source", ""))
+                 float(data.get("start", end)), end, data.get("source", ""),
+                 [list(w) for w in data.get("words", [])])
+
+
+def without_own_voice(reply: Reply, spoken: list, floor: float = 0.0,
+                      lag: float = 0.5, now: float = 1e18) -> Reply | None:
+    """Keep only what the person said while the device itself was silent.
+
+    The mic hears the device's own question ("Are you okay? Say yes, no, or I
+    need help."), and a person often answers right as it ends, so the two can
+    arrive as one utterance. Using the per-word times, words spoken while
+    `spoken` ([[start, end], ...] on the device clock) was active, or before
+    `floor`, are dropped. `lag` is how much later than the device clock the
+    audio timeline runs (publish and network delay). Returns the reply
+    unchanged when nothing was dropped, a keyword reading of the remaining
+    words when some were, or None when nothing is left.
+    """
+    if not reply.words:                  # old-style row: judge the whole utterance
+        mid = (reply.start + reply.end) / 2 - lag
+        if looks_like_prompt(reply.text) or mid < floor or any(
+                a <= mid <= (b if b is not None else now) for a, b in spoken):
+            return None
+        return reply
+    kept = []
+    for word, start, end in reply.words:
+        mid = (start + end) / 2 - lag
+        if mid < floor or any(a <= mid <= (b if b is not None else now) for a, b in spoken):
+            continue
+        kept.append(word)
+    if len(kept) == len(reply.words):
+        return reply
+    if not kept:
+        return None
+    text = " ".join(kept)
+    cleaned = rule_interpret(text)
+    cleaned.start, cleaned.end, cleaned.words = reply.start, reply.end, []
+    cleaned.reason = f"{cleaned.reason} (device's own voice removed)"
+    return cleaned
 
 
 def _row(t: float, top_classes: str, status: str) -> str:

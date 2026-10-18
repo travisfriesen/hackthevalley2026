@@ -135,3 +135,75 @@ def test_segmenter_splits_two_answers_and_ignores_blips():
 ])
 def test_the_question_itself_is_not_an_answer(text, echo):
     assert reply.looks_like_prompt(text) is echo
+
+
+# -- the device's own voice -------------------------------------------------
+# The audio timeline runs ~0.5 s behind the device clock (lag), so a word spoken
+# at device time t is reported at t + 0.5.
+
+LAG = 0.5
+PROMPT = ["Are", "you", "okay?", "Say", "yes,", "no,", "or", "I", "need", "help."]
+
+
+def _heard(prompt_start=100.0, answer=None, answer_at=104.6):
+    words, t = [], prompt_start
+    if prompt_start is not None:
+        for w in PROMPT:
+            words.append([w, t + LAG, t + 0.4 + LAG])
+            t += 0.42
+    if answer:
+        for w in answer:
+            words.append([w, answer_at + LAG, answer_at + 0.3 + LAG])
+            answer_at += 0.35
+    return reply.Reply("help", "model said", " ".join(w[0] for w in words), words=words,
+                       start=words[0][1], end=words[-1][2])
+
+
+SPOKE = [[100.0, 104.2]]
+
+
+def test_answer_glued_to_the_question_is_kept_and_the_question_dropped():
+    # the real case: "Are you okay? Say yes, no, or I need help. No." as one utterance
+    got = reply.without_own_voice(_heard(answer=["No."]), SPOKE, lag=LAG)
+    assert (got.label, got.text) == ("help", "No.")
+
+
+def test_yes_after_the_question_cancels():
+    got = reply.without_own_voice(_heard(answer=["Yes,", "I'm", "fine."]), SPOKE, lag=LAG)
+    assert got.label == "unclear" or got.label == "ok"
+    assert got.label == "ok"                       # "yes I'm fine"
+
+
+def test_injury_after_the_question_is_help():
+    got = reply.without_own_voice(_heard(answer=["Yes", "but", "my", "hip", "hurts"]), SPOKE, lag=LAG)
+    assert got.label == "help"
+
+
+def test_only_the_question_is_dropped_entirely():
+    assert reply.without_own_voice(_heard(), SPOKE, lag=LAG) is None
+
+
+def test_answer_in_silence_is_untouched():
+    quiet = _heard(prompt_start=None, answer=["No."], answer_at=110.0)
+    assert reply.without_own_voice(quiet, SPOKE, lag=LAG) is quiet
+
+
+def test_words_before_the_check_in_began_are_dropped():
+    old = _heard(prompt_start=None, answer=["Yes."], answer_at=90.0)
+    assert reply.without_own_voice(old, [], floor=100.0, lag=LAG) is None
+
+
+def test_old_style_rows_without_word_times_still_filter():
+    echo = reply.Reply("help", "", "Are you okay? Say yes, no, or I need help.", start=100.5, end=104.7)
+    assert reply.without_own_voice(echo, [], lag=LAG) is None
+    late = reply.Reply("help", "", "No.", start=110.0, end=110.5)
+    assert reply.without_own_voice(late, SPOKE, lag=LAG) is late
+
+
+def test_word_times_survive_the_csv_row():
+    import csv
+    r = _heard(answer=["No."])
+    r.end = 105.5
+    values = next(csv.reader([reply.reply_row(r)]))
+    back = reply.parse_reply(values[4], float(values[0]))
+    assert [w[0] for w in back.words] == [w[0] for w in r.words]

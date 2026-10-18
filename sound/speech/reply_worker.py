@@ -28,7 +28,7 @@ import wave
 
 import numpy as np
 
-from reply import alive_row, claude_ask, interpret, ollama_ask, reply_row
+from reply import alive_row, claude_ask, interpret, looks_like_prompt, ollama_ask, reply_row
 from segmenter import SR, Segmenter
 
 log = logging.getLogger("reply_worker")
@@ -121,16 +121,17 @@ def load_whisper(name: str, device: str):
     return WhisperModel(name, device=device, compute_type=compute)
 
 
-def transcribe(model, audio: np.ndarray) -> str:
+def transcribe(model, audio: np.ndarray):
+    """(text, [(word, t0, t1), ...]) with word times in seconds from the audio start."""
     segments, _ = model.transcribe(
-        audio, language="en", beam_size=1, vad_filter=True,
+        audio, language="en", beam_size=1, vad_filter=True, word_timestamps=True,
         condition_on_previous_text=False)
-    kept = [s.text.strip() for s in segments
-            if s.no_speech_prob < 0.6 and s.avg_logprob > -1.0]
-    text = " ".join(kept).strip()
+    kept = [s for s in segments if s.no_speech_prob < 0.6 and s.avg_logprob > -1.0]
+    text = " ".join(s.text.strip() for s in kept).strip()
     if re.sub(r"[^a-z ]", "", text.lower()).strip() in HALLUCINATIONS:
-        return ""
-    return text
+        return "", []
+    words = [(w.word.strip(), w.start, w.end) for s in kept for w in (s.words or [])]
+    return text, words
 
 
 def make_ask(args):
@@ -165,11 +166,13 @@ def run(link, args) -> None:
             if end_t != last_end:
                 last_end = end_t
                 for utt in seg.feed(samples, end_t):
-                    text = transcribe(model, utt.audio)
+                    text, words = transcribe(model, utt.audio)
                     if not text:
                         continue
-                    reply = interpret(text, ask)
+                    # the device's own question needs no model call
+                    reply = interpret(text, None if looks_like_prompt(text) else ask)
                     reply.start, reply.end = utt.start, utt.end
+                    reply.words = [(w, utt.start + a, utt.start + b) for w, a, b in words]
                     log.info("%r -> %s (%s: %s)", text, reply.label, reply.source, reply.reason)
                     link.append(reply_row(reply))
         if not isinstance(link, WavLink):
